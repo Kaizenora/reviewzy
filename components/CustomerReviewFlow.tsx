@@ -58,9 +58,9 @@ export default function CustomerReviewFlow({ shop }: Props) {
     let index = 0;
     const len = text.length;
 
-    // Fast and responsive typewriter (advances 1-2 chars per tick)
+    // Smooth, realistic typewriter animation (1 char at a time at ~28ms)
     typingTimerRef.current = setInterval(() => {
-      index += 2;
+      index += 1;
       if (index >= len) {
         setDisplayedReviewText(text);
         setIsTyping(false);
@@ -68,7 +68,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
       } else {
         setDisplayedReviewText(text.slice(0, index));
       }
-    }, 14);
+    }, 28);
   };
 
   // Generate initial review on mount or when shop changes
