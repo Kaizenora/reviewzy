@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Shop } from "@/types/shop";
 import { getAllShops, saveShop, isSupabaseConfigured } from "@/lib/supabase";
+import { DEFAULT_SHOPS } from "@/lib/default-shops";
 import Link from "next/link";
 import {
   Store,
@@ -16,8 +17,8 @@ import {
 } from "lucide-react";
 
 export default function AdminPage() {
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [shops, setShops] = useState<Shop[]>(DEFAULT_SHOPS);
+  const [loading, setLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 

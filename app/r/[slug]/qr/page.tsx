@@ -4,24 +4,30 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Shop } from "@/types/shop";
 import { getShopBySlug } from "@/lib/supabase";
+import { getShopBySlugFromDefaults } from "@/lib/default-shops";
 import { QRCodeSVG } from "qrcode.react";
 import { Printer, ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 export default function ShopQrPage() {
   const params = useParams();
-  const slug = params?.slug as string;
-  const [shop, setShop] = useState<Shop | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [currentUrl, setCurrentUrl] = useState("");
+  const slug = (params?.slug as string) || "cafe-mokka";
+
+  const [shop, setShop] = useState<Shop | null>(
+    () => getShopBySlugFromDefaults(slug) || null
+  );
+  const [currentUrl, setCurrentUrl] = useState(
+    `https://reviewzy.app/r/${slug}`
+  );
 
   useEffect(() => {
     async function load() {
       if (slug) {
         const found = await getShopBySlug(slug);
-        setShop(found);
+        if (found) {
+          setShop(found);
+        }
       }
-      setLoading(false);
     }
     load();
     if (typeof window !== "undefined") {
@@ -29,18 +35,11 @@ export default function ShopQrPage() {
     }
   }, [slug]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center text-stone-500 text-sm">
-        Loading QR Code...
-      </div>
-    );
-  }
-
   if (!shop) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center p-6 text-center font-sans">
         <h1 className="text-xl font-bold text-stone-800 mb-2">Shop Not Found</h1>
+        <p className="text-xs text-stone-500 mb-4">Slug: {slug}</p>
         <Link href="/" className="text-sm text-[#E36427] font-semibold">
           Return to Home
         </Link>
@@ -49,7 +48,7 @@ export default function ShopQrPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-8 px-4 flex flex-col items-center justify-center font-sans">
+    <div className="min-h-screen bg-[#FAF7F2] py-8 px-4 flex flex-col items-center justify-center font-sans text-stone-900">
       {/* Top nav */}
       <div className="w-full max-w-sm flex items-center justify-between mb-6 print:hidden">
         <Link
@@ -72,7 +71,7 @@ export default function ShopQrPage() {
       <div className="w-full max-w-sm bg-white rounded-3xl border-2 border-[#EADFCF] p-8 shadow-card flex flex-col items-center text-center relative overflow-hidden print:border-none print:shadow-none print:p-0">
         {/* Decorative top ribbon */}
         <div
-          className="h-2 w-full absolute top-0 left-0"
+          className="h-2.5 w-full absolute top-0 left-0"
           style={{ backgroundColor: shop.brandColor || "#E36427" }}
         />
 
@@ -94,7 +93,7 @@ export default function ShopQrPage() {
         </div>
 
         {/* The QR Code */}
-        <div className="p-4 bg-white rounded-2xl border-2 border-stone-200 shadow-sm mb-6">
+        <div className="p-4 bg-white rounded-2xl border-2 border-stone-200 shadow-sm mb-6 flex items-center justify-center">
           <QRCodeSVG
             value={currentUrl || `https://reviewzy.app/r/${shop.slug}`}
             size={200}
