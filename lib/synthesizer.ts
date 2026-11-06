@@ -1,162 +1,192 @@
 import { ReviewTone } from "@/types/shop";
 
-// Diverse openers for English reviews (30+ variations)
-const ENGLISH_OPENERS = [
-  "Had an amazing experience at",
-  "Recently visited",
-  "Stopped by",
-  "Had a wonderful time at",
-  "Really impressed by my visit to",
-  "One of the best experiences at",
-  "Visited",
-  "Dropped by",
-  "Honestly blown away by",
-  "Can't say enough good things about",
-  "Hands down one of my favorite spots,",
-  "So glad I checked out",
-  "Had an absolute 10/10 time at",
-  "My experience at",
-  "Such a pleasant and smooth visit to",
-  "Always a delight visiting",
-  "First time visiting",
-  "Came here on a high recommendation and",
-  "Really happy with the service at",
-  "Everything about my time at",
-  "Super satisfied with our visit to",
-  "Five stars all the way for",
-  "What a great experience at",
-  "Top-notch experience from start to finish at",
-  "Thoroughly enjoyed visiting",
-];
+/**
+ * Format tags into natural English list:
+ * 1 tag:  "tasty food"
+ * 2 tags: "tasty food and friendly staff"
+ * 3 tags: "tasty food, friendly staff and nice ambience"
+ */
+function formatTagsEnglish(tags: string[]): string {
+  const cleaned = tags.map((t) => t.trim().toLowerCase()).filter(Boolean);
+  if (cleaned.length === 0) return "great service";
+  if (cleaned.length === 1) return cleaned[0];
+  if (cleaned.length === 2) return `${cleaned[0]} and ${cleaned[1]}`;
+  return `${cleaned.slice(0, -1).join(", ")} and ${cleaned[cleaned.length - 1]}`;
+}
 
-// Diverse sentence templates for combining keywords (20+ variations)
-const KEYWORD_TEMPLATES = [
-  (tags: string[]) => `The ${tags.join(", ").toLowerCase()} truly stood out.`,
-  (tags: string[]) => `Loved the ${tags.slice(0, -1).join(", ").toLowerCase()} and especially the ${tags[tags.length - 1].toLowerCase()}.`,
-  (tags: string[]) => `Everything from the ${tags[0].toLowerCase()} to the ${tags.slice(1).join(" and ").toLowerCase()} was top tier.`,
-  (tags: string[]) => `Special mention for the ${tags.join(" and ").toLowerCase()}, really made the visit memorable.`,
-  (tags: string[]) => `Particularly impressed with how ${tags.join(", ").toLowerCase()} was handled throughout.`,
-  (tags: string[]) => `The ${tags[0].toLowerCase()} was incredible, and the ${tags.slice(1).join(" and ").toLowerCase()} exceeded expectations.`,
-  (tags: string[]) => `Big shoutout for the ${tags.join(" and ").toLowerCase()} — absolutely spot on.`,
-  (tags: string[]) => `You can tell they genuinely care about quality; the ${tags.join(", ").toLowerCase()} was fantastic.`,
-  (tags: string[]) => `Both the ${tags[0].toLowerCase()} and ${tags.slice(1).join(" as well as ").toLowerCase()} were phenomenal.`,
-  (tags: string[]) => `Super impressed with the ${tags.join(", ").toLowerCase()}.`,
-  (tags: string[]) => `The standout was definitely the ${tags[0].toLowerCase()}, and the ${tags.slice(1).join(" along with ").toLowerCase()} made it perfect.`,
-  (tags: string[]) => `From the ${tags.join(" down to the ").toLowerCase()}, everything was flawless.`,
-  (tags: string[]) => `Really appreciated the attention to detail with the ${tags.join(" and ").toLowerCase()}.`,
-];
+/**
+ * Format tags into natural Hinglish list:
+ * 1 tag:  "tasty food"
+ * 2 tags: "tasty food aur friendly staff"
+ * 3 tags: "tasty food, friendly staff aur nice ambience"
+ */
+function formatTagsHinglish(tags: string[]): string {
+  const cleaned = tags.map((t) => t.trim().toLowerCase()).filter(Boolean);
+  if (cleaned.length === 0) return "acchi service";
+  if (cleaned.length === 1) return cleaned[0];
+  if (cleaned.length === 2) return `${cleaned[0]} aur ${cleaned[1]}`;
+  return `${cleaned.slice(0, -1).join(", ")} aur ${cleaned[cleaned.length - 1]}`;
+}
 
-// Diverse closers (25+ variations)
-const ENGLISH_CLOSERS = [
-  "Definitely coming back again!",
-  "Highly recommended to everyone.",
-  "Will surely visit again soon.",
-  "10/10 would recommend!",
-  "Great job by the entire team.",
-  "A must-visit spot in the area.",
-  "Looking forward to my next visit!",
-  "Keep up the fantastic work!",
-  "Cannot recommend this place enough.",
-  "Already planning my next trip back.",
-  "Easily one of the best around.",
-  "Glad to have such quality nearby.",
-  "Worth every single star!",
-  "Definitely worth stopping by.",
-  "Will be recommending this to friends and family.",
-  "Outstanding service from start to finish.",
-  "Super happy customer right here!",
-];
-
-// Diverse styles of complete multi-sentence paragraphs
-const STORY_TEMPLATES = [
-  (shop: string, tags: string[]) =>
-    `Visited ${shop} today and had such a pleasant experience. The ${tags.join(" and ").toLowerCase()} made a great impression. Clean, welcoming and very professional. Highly recommend!`,
-  (shop: string, tags: string[]) =>
-    `If you're considering visiting ${shop}, do not hesitate. The ${tags[0].toLowerCase()} was exceptional and the ${tags.slice(1).join(" & ").toLowerCase() || "overall vibe"} was top class. 5 stars all day!`,
-  (shop: string, tags: string[]) =>
-    `Had a really positive experience at ${shop}. The team was attentive and the ${tags.join(", ").toLowerCase()} was genuinely impressive. Definitely coming back soon.`,
-  (shop: string, tags: string[]) =>
-    `${shop} never disappoints! Outstanding ${tags.join(" and ").toLowerCase()}. Great atmosphere and friendly faces everywhere. 10/10!`,
-  (shop: string, tags: string[]) =>
-    `First time at ${shop} and I'm very impressed. The ${tags.slice(0, 2).join(" along with ").toLowerCase()} made the entire visit wonderful. Will definitely be a regular here.`,
-  (shop: string, tags: string[]) =>
-    `Super happy with my visit to ${shop}! You can feel the quality right away. Loved the ${tags.join(", ").toLowerCase()}. Keep up the great standards!`,
-  (shop: string, tags: string[]) =>
-    `Great vibes and even better service at ${shop}. The ${tags.join(" & ").toLowerCase()} was spot on. Worth every penny!`,
-  (shop: string, tags: string[]) =>
-    `Really appreciated the promptness and warmth at ${shop}. The ${tags[0].toLowerCase()} was a huge plus. Definitely recommending to all my contacts!`,
-  (shop: string, tags: string[]) =>
-    `Can't say enough good things about ${shop}! From the ${tags[0].toLowerCase()} to the ${tags.slice(1).join(" and ").toLowerCase() || "overall experience"}, everything was handled with perfection.`,
-  (shop: string, tags: string[]) =>
-    `Awesome visit to ${shop}. The staff was welcoming and the ${tags.join(", ").toLowerCase()} was top tier. Will definitely return!`,
-];
-
-// Short / Punchy templates (20+ variations)
-const SHORT_TEMPLATES = [
-  (shop: string, tags: string[]) =>
-    `Great visit to ${shop}! Loved the ${tags.join(" & ").toLowerCase()}. Highly recommended.`,
-  (shop: string, tags: string[]) =>
-    `Top-notch ${tags.join(", ").toLowerCase()} at ${shop}! Wonderful service and vibe.`,
-  (shop: string, tags: string[]) =>
-    `Super happy with my experience. ${tags.join(", ")} — totally worth it!`,
-  (shop: string, tags: string[]) =>
-    `Fantastic experience at ${shop}. Loved the ${tags[0].toLowerCase()}!`,
-  (shop: string, tags: string[]) =>
-    `10/10 for ${shop}! The ${tags.join(" and ").toLowerCase()} was spot on.`,
-  (shop: string, tags: string[]) =>
-    `Excellent service and ${tags.join(", ").toLowerCase()}. Will definitely visit again.`,
-  (shop: string, tags: string[]) =>
-    `Quick, seamless, and high quality. Loved the ${tags[0].toLowerCase()} at ${shop}!`,
-  (shop: string, tags: string[]) =>
-    `Best in the area! Special shoutout for the ${tags.join(" & ").toLowerCase()}.`,
-  (shop: string, tags: string[]) =>
-    `Loved everything about ${shop}. The ${tags.join(", ").toLowerCase()} was top tier.`,
-  (shop: string, tags: string[]) =>
-    `Smooth experience, friendly team, and great ${tags.join(" & ").toLowerCase()}. 5 stars!`,
-  (shop: string, tags: string[]) =>
-    `Highly recommend ${shop}! The ${tags[0].toLowerCase()} was amazing.`,
-  (shop: string, tags: string[]) =>
-    `So glad I came to ${shop}. Exceptional ${tags.join(" and ").toLowerCase()}!`,
-  (shop: string, tags: string[]) =>
-    `Fast, polite, and great quality. Loved the ${tags.join(", ").toLowerCase()}!`,
-  (shop: string, tags: string[]) =>
-    `Top quality at ${shop}. The ${tags.join(" + ").toLowerCase()} made my day.`,
-  (shop: string, tags: string[]) =>
-    `Cannot recommend ${shop} enough. Outstanding ${tags[0].toLowerCase()}!`,
-];
-
-// Hinglish phrases and templates (20+ variations)
+// ============================================================================
+// HINGLISH REVIEW TEMPLATES (25+ rich, natural, authentic templates)
+// ============================================================================
 const HINGLISH_TEMPLATES = [
   (shop: string, tags: string[]) =>
-    `${shop} mein experience bohot badiya raha! ${tags.slice(0, 2).join(" aur ").toLowerCase()} ekdum top notch tha. Definitely visiting again!`,
+    `${shop} mein experience sach mein bohot hi zabardast raha! Yahan ka ${formatTagsHinglish(tags)} ekdum top class hai. Staff ka behaviour bhi bohot polite aur helpful tha. Definitely visiting again!`,
+
   (shop: string, tags: string[]) =>
-    `Sach mein maza aa gaya! ${tags.join(", ").toLowerCase()} kaafi accha laga aur service bhi smooth thi. Loved the whole vibe!`,
+    `Aaj visit kiya ${shop} aur dil khush ho gaya! ${formatTagsHinglish(tags)} sach mein standout karta hai. Quality aur cleanliness dono 10 on 10 thi. Family aur friends ke saath aane ke liye best jagah hai.`,
+
   (shop: string, tags: string[]) =>
-    `Bohot badhiya jagah hai. Special mention for ${tags.join(" aur ").toLowerCase()}. Family aur friends ke saath aane ke liye perfect spot!`,
+    `Bohot hi shandaar jagah hai ${shop}! Yahan ki service aur especially ${formatTagsHinglish(tags)} ne dil jeet liya. Paisa vasool experience raha. 5 stars all the way!`,
+
   (shop: string, tags: string[]) =>
-    `${shop} par visit karke dil khush ho gaya. ${tags.slice(0, 1).join("").toLowerCase()} bohot mast tha aur overall experience 10 on 10 raha!`,
+    `${shop} par mera first visit tha and I am super impressed! ${formatTagsHinglish(tags)} kaafi accha laga. Vibe bhi peaceful thi aur overall management ekdum perfect tha. Highly recommended!`,
+
   (shop: string, tags: string[]) =>
-    `Superb experience! Yahan ka ${tags.join(", ").toLowerCase()} ekdum authentic aur clean hai. Jarur recommend karunga sabko!`,
+    `Sach mein maza aa gaya ${shop} aake! Yahan ka ${formatTagsHinglish(tags)} bohot badiya hai. Sabhi cheezein properly taken care of thi. Jarur recommend karunga sabhi ko!`,
+
   (shop: string, tags: string[]) =>
-    `${shop} kaafi accha laga! ${tags.join(" aur ").toLowerCase()} dono bohot badhiya the. Team bhi kaafi polite hai.`,
+    `One of the best spots in town — ${shop}! Special mention for ${formatTagsHinglish(tags)}, it was simply phenomenal. Hospitality aur environment dono superb the. 10/10 recommendation!`,
+
   (shop: string, tags: string[]) =>
-    `Mera first visit tha ${shop} par aur experience zabardast raha. ${tags.join(", ").toLowerCase()} was totally worth it.`,
+    `${shop} ka experience ek number tha! Yahan par ${formatTagsHinglish(tags)} sach mein lajawab hai. Fast service aur courteous team. Zaroor visit karein!`,
+
   (shop: string, tags: string[]) =>
-    `Bohot hi shandaar service aur badiya ${tags.join(" & ").toLowerCase()}. Definitely coming back soon with family!`,
+    `Bohot accha laga yahan aana! ${shop} mein ${formatTagsHinglish(tags)} sach mein next level hai. Sab kuch neat, clean aur well managed tha. Definitely coming back soon!`,
+
   (shop: string, tags: string[]) =>
-    `${shop} ekdum reliable aur mast jagah hai. ${tags[0].toLowerCase()} kaafi sahi laga. Full 5 stars!`,
+    `Bilkul paisa vasool visit raha at ${shop}! ${formatTagsHinglish(tags)} ne expectaction se bhi zyada accha feel karwaya. Good vibes, great service!`,
+
   (shop: string, tags: string[]) =>
-    `Paisa vasool experience at ${shop}! ${tags.join(" aur ").toLowerCase()} ek number tha. Highly recommended!`,
+    `${shop} par aakar mood ekdum fresh ho gaya! Highly impressed with their ${formatTagsHinglish(tags)}. Team kaafi responsive aur humble hai. Full 5 star rating!`,
+
   (shop: string, tags: string[]) =>
-    `Kaafi peaceful aur clean environment. ${tags.join(", ").toLowerCase()} bohot pasand aaya. Zaroor visit karein!`,
+    `Superb service at ${shop}! ${formatTagsHinglish(tags)} kaafi authentic aur satisfying tha. Yahan ki warmth aur quality bohot pasand aayi. Must visit place!`,
+
   (shop: string, tags: string[]) =>
-    `Loved the hospitality at ${shop}! ${tags.join(" and ").toLowerCase()} dono ekdum mast the. 10/10!`,
+    `Kya kamaal ka experience tha ${shop} mein! ${formatTagsHinglish(tags)} sach mein standout feature hai. Family ke saath aane ke liye ideal spot. Jarur try karein!`,
+
   (shop: string, tags: string[]) =>
-    `Bohot accha staff aur fast service. ${tags.slice(0, 2).join(" aur ").toLowerCase()} was simply superb!`,
+    `Loved the hospitality at ${shop}! Yahan ka ${formatTagsHinglish(tags)} dono hi bohot impressive the. Fast response aur positive vibe. Definitely recommended!`,
+
   (shop: string, tags: string[]) =>
-    `${shop} par jaakar maza aa gaya. Quality aur ${tags.join(", ").toLowerCase()} dono top class hain!`,
+    `Ekdum premium feel aayi at ${shop}! Special shoutout for their ${formatTagsHinglish(tags)}. Everything was smooth and enjoyable. 5 out of 5!`,
+
   (shop: string, tags: string[]) =>
-    `Ekdum 5-star experience! ${tags.join(" aur ").toLowerCase()} ne dil jeet liya. Recommended to all!`,
+    `${shop} never fails to impress! Yahan aakar ${formatTagsHinglish(tags)} ka experience bohot badiya raha. Staff bohot cooperative hai. Will visit again for sure!`,
+
+  (shop: string, tags: string[]) =>
+    `Bohot hi hygienic aur friendly atmosphere hai ${shop} par. ${formatTagsHinglish(tags)} was totally worth it. 10/10 recommend karunga!`,
+
+  (shop: string, tags: string[]) =>
+    `Great visit to ${shop} today! ${formatTagsHinglish(tags)} kaafi mast tha aur bill bhi totally reasonable laga. Glad to have this place around!`,
+
+  (shop: string, tags: string[]) =>
+    `Sach mein aisi service kam hi dekhne ko milti hai. ${shop} mein ${formatTagsHinglish(tags)} sach mein top-notch tha. Keep up the good work team!`,
+
+  (shop: string, tags: string[]) =>
+    `First time try kiya aur dil jeet liya ${shop} ne! Yahan ka ${formatTagsHinglish(tags)} bohot pasand aaya. A complete 5-star experience!`,
+
+  (shop: string, tags: string[]) =>
+    `Family ke saath ${shop} gaye the and sabhi ko bohot pasand aaya. Special praise for ${formatTagsHinglish(tags)}. Har cheez perfect thi!`,
+
+  (shop: string, tags: string[]) =>
+    `${shop} mein har cheez spot on thi! ${formatTagsHinglish(tags)} sach mein mind-blowing tha. Super happy with the entire visit!`,
+
+  (shop: string, tags: string[]) =>
+    `Agar aap quality dhoondh rahe hain toh ${shop} zaroor visit karein. ${formatTagsHinglish(tags)} kaafi lajawab hai. Fully satisfied customer!`,
+];
+
+// ============================================================================
+// SHORT / PUNCHY TEMPLATES (20+ variations)
+// ============================================================================
+const SHORT_TEMPLATES = [
+  (shop: string, tags: string[]) =>
+    `Great visit to ${shop}! Loved the ${formatTagsEnglish(tags)}. Highly recommended.`,
+  (shop: string, tags: string[]) =>
+    `Top-notch ${formatTagsEnglish(tags)} at ${shop}! Wonderful service and vibe.`,
+  (shop: string, tags: string[]) =>
+    `Super happy with my experience at ${shop}. ${formatTagsEnglish(tags)} — totally worth it!`,
+  (shop: string, tags: string[]) =>
+    `Fantastic experience at ${shop}. Loved the ${formatTagsEnglish(tags)}!`,
+  (shop: string, tags: string[]) =>
+    `10/10 for ${shop}! The ${formatTagsEnglish(tags)} was spot on.`,
+  (shop: string, tags: string[]) =>
+    `Excellent service and ${formatTagsEnglish(tags)}. Will definitely visit ${shop} again.`,
+  (shop: string, tags: string[]) =>
+    `Quick, seamless, and high quality. Loved the ${formatTagsEnglish(tags)} at ${shop}!`,
+  (shop: string, tags: string[]) =>
+    `Best in the area! Special shoutout for the ${formatTagsEnglish(tags)} at ${shop}.`,
+  (shop: string, tags: string[]) =>
+    `Loved everything about ${shop}. The ${formatTagsEnglish(tags)} was top tier.`,
+  (shop: string, tags: string[]) =>
+    `Smooth experience, friendly team, and great ${formatTagsEnglish(tags)}. 5 stars!`,
+  (shop: string, tags: string[]) =>
+    `Highly recommend ${shop}! The ${formatTagsEnglish(tags)} was amazing.`,
+  (shop: string, tags: string[]) =>
+    `So glad I came to ${shop}. Exceptional ${formatTagsEnglish(tags)}!`,
+  (shop: string, tags: string[]) =>
+    `Fast, polite, and great quality. Loved the ${formatTagsEnglish(tags)}!`,
+  (shop: string, tags: string[]) =>
+    `Top quality at ${shop}. The ${formatTagsEnglish(tags)} made my day.`,
+  (shop: string, tags: string[]) =>
+    `Cannot recommend ${shop} enough. Outstanding ${formatTagsEnglish(tags)}!`,
+  (shop: string, tags: string[]) =>
+    `5 stars! Clean place, great staff, and wonderful ${formatTagsEnglish(tags)}.`,
+  (shop: string, tags: string[]) =>
+    `Very satisfied with ${shop}. The ${formatTagsEnglish(tags)} was genuinely impressive.`,
+];
+
+// ============================================================================
+// NATURAL / STANDARD ENGLISH TEMPLATES (Multi-sentence rich paragraphs)
+// ============================================================================
+const STORY_TEMPLATES = [
+  (shop: string, tags: string[]) =>
+    `Visited ${shop} today and had such a pleasant experience. The ${formatTagsEnglish(tags)} made a lasting impression. Clean, welcoming and very professional from start to finish. Highly recommend to everyone!`,
+
+  (shop: string, tags: string[]) =>
+    `If you're considering visiting ${shop}, do not hesitate. The ${formatTagsEnglish(tags)} was exceptional and the overall vibe was top class. Truly worth 5 stars!`,
+
+  (shop: string, tags: string[]) =>
+    `Had a really positive experience at ${shop}. The team was attentive and the ${formatTagsEnglish(tags)} was genuinely impressive. Definitely coming back soon.`,
+
+  (shop: string, tags: string[]) =>
+    `${shop} never disappoints! Outstanding ${formatTagsEnglish(tags)}. Great atmosphere and friendly faces everywhere. A solid 10/10!`,
+
+  (shop: string, tags: string[]) =>
+    `First time at ${shop} and I'm very impressed. The ${formatTagsEnglish(tags)} made the entire visit wonderful. Will definitely be a regular here from now on.`,
+
+  (shop: string, tags: string[]) =>
+    `Super happy with my visit to ${shop}! You can feel the quality right away. Loved the ${formatTagsEnglish(tags)}. Keep up the great standards!`,
+
+  (shop: string, tags: string[]) =>
+    `Great vibes and even better service at ${shop}. The ${formatTagsEnglish(tags)} was spot on. Worth every single penny!`,
+
+  (shop: string, tags: string[]) =>
+    `Really appreciated the promptness and warmth at ${shop}. The ${formatTagsEnglish(tags)} was a huge plus. Definitely recommending to all my contacts!`,
+
+  (shop: string, tags: string[]) =>
+    `Can't say enough good things about ${shop}! From the ${formatTagsEnglish(tags)} to the overall experience, everything was handled with perfection.`,
+
+  (shop: string, tags: string[]) =>
+    `Awesome visit to ${shop}. The staff was welcoming and the ${formatTagsEnglish(tags)} was top tier. Looking forward to our next visit!`,
+
+  (shop: string, tags: string[]) =>
+    `Had an absolute 10/10 experience at ${shop}. The ${formatTagsEnglish(tags)} truly stood out. Outstanding customer care and quality. Five stars all the way!`,
+
+  (shop: string, tags: string[]) =>
+    `Such a delightful visit to ${shop}! Everything from the ${formatTagsEnglish(tags)} to the courteous team exceeded expectations. Highly recommended spot in the city.`,
+
+  (shop: string, tags: string[]) =>
+    `Stopped by ${shop} earlier today and loved every bit of it. The ${formatTagsEnglish(tags)} was exceptional. Definitely coming back with friends!`,
+
+  (shop: string, tags: string[]) =>
+    `One of the best experiences I've had recently! ${shop} impressed me with their ${formatTagsEnglish(tags)}. Smooth, pleasant and high quality.`,
+
+  (shop: string, tags: string[]) =>
+    `Five stars for ${shop}! Loved the ${formatTagsEnglish(tags)}. The team goes out of their way to make you feel comfortable. A must-visit!`,
 ];
 
 /**
@@ -170,7 +200,7 @@ export function generateVariedReview(
   customTags: string[] = [],
   tone: ReviewTone = "standard"
 ): string {
-  const allTags = [...selectedTags, ...customTags].filter(Boolean);
+  const allTags = [...selectedTags, ...customTags].map((t) => t.trim()).filter(Boolean);
   const tags = allTags.length > 0 ? allTags : ["Good service", "Great experience"];
 
   // Shuffle tags slightly for natural human variety
@@ -186,42 +216,7 @@ export function generateVariedReview(
     return fn(shopName, shuffledTags);
   }
 
-  // For Natural / Standard: Randomly pick between Story templates or Dynamic Opener+Body+Closer
-  const useStoryTemplate = Math.random() > 0.45;
-  if (useStoryTemplate) {
-    const storyFn = STORY_TEMPLATES[Math.floor(Math.random() * STORY_TEMPLATES.length)];
-    return storyFn(shopName, shuffledTags);
-  }
-
-  // Dynamic composition
-  const opener = ENGLISH_OPENERS[Math.floor(Math.random() * ENGLISH_OPENERS.length)];
-  const closer = ENGLISH_CLOSERS[Math.floor(Math.random() * ENGLISH_CLOSERS.length)];
-  const templateFn = KEYWORD_TEMPLATES[Math.floor(Math.random() * KEYWORD_TEMPLATES.length)];
-
-  if (shuffledTags.length === 1) {
-    const singleOptions = [
-      `${opener} ${shopName}! The ${shuffledTags[0].toLowerCase()} was really exceptional. ${closer}`,
-      `Loved my visit to ${shopName}. Particularly impressed with the ${shuffledTags[0].toLowerCase()}. ${closer}`,
-      `Great experience at ${shopName}. The ${shuffledTags[0].toLowerCase()} made our day! ${closer}`,
-      `So glad we stopped by ${shopName}. The ${shuffledTags[0].toLowerCase()} was simply outstanding. ${closer}`,
-      `Had a 5-star visit to ${shopName}! Truly loved the ${shuffledTags[0].toLowerCase()}. ${closer}`,
-    ];
-    return singleOptions[Math.floor(Math.random() * singleOptions.length)];
-  }
-
-  if (shuffledTags.length === 2) {
-    const doubleOptions = [
-      `${opener} ${shopName}. The ${shuffledTags[0].toLowerCase()} was great and the ${shuffledTags[1].toLowerCase()} was delightful. ${closer}`,
-      `Had a wonderful time at ${shopName}! Both the ${shuffledTags[0].toLowerCase()} and the ${shuffledTags[1].toLowerCase()} were spot on. ${closer}`,
-      `Really happy with ${shopName}. Loved the ${shuffledTags[0].toLowerCase()} as well as the ${shuffledTags[1].toLowerCase()}. ${closer}`,
-      `Visited ${shopName} and thoroughly enjoyed it. The ${shuffledTags[0].toLowerCase()} combined with ${shuffledTags[1].toLowerCase()} made for a top-tier visit. ${closer}`,
-      `Top rating for ${shopName}! Outstanding ${shuffledTags[0].toLowerCase()} and super pleased with the ${shuffledTags[1].toLowerCase()}. ${closer}`,
-      `Great vibe at ${shopName}. Loved the ${shuffledTags[0].toLowerCase()}, and the ${shuffledTags[1].toLowerCase()} was a huge plus! ${closer}`,
-    ];
-    return doubleOptions[Math.floor(Math.random() * doubleOptions.length)];
-  }
-
-  // 3 or more tags
-  const bodySentence = templateFn(shuffledTags);
-  return `${opener} ${shopName}. ${bodySentence} ${closer}`;
+  // Standard / Natural English
+  const fn = STORY_TEMPLATES[Math.floor(Math.random() * STORY_TEMPLATES.length)];
+  return fn(shopName, shuffledTags);
 }
