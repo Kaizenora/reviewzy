@@ -116,34 +116,34 @@ export default function ShopQrPage() {
         />
 
         {/* 1. COMPANY NAME & LOGO */}
-        <div className="flex items-center gap-3 mb-4 mt-1">
+        <div className="flex flex-col items-center gap-3 mb-5 mt-2">
           {shop.logoUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={shop.logoUrl}
               alt={shop.name}
-              className={`w-11 h-11 rounded-2xl object-cover shadow-sm border ${
+              className={`w-24 h-24 rounded-3xl object-cover shadow-lg border-2 ${
                 isDarkStand ? "border-[#2D2D40]" : "border-stone-200"
               }`}
             />
           ) : (
             <div
-              className="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-extrabold text-lg shadow-sm"
+              className="w-24 h-24 rounded-3xl flex items-center justify-center text-white font-extrabold text-4xl shadow-lg"
               style={{ backgroundColor: shop.brandColor || "#E36427" }}
             >
               {shop.logoLetter || shop.name.charAt(0)}
             </div>
           )}
-          <div className="text-left">
+          <div className="text-center">
             <h2
-              className={`text-lg font-black leading-tight tracking-tight ${
+              className={`text-3xl font-black leading-tight tracking-tight ${
                 isDarkStand ? "text-white" : "text-stone-900"
               }`}
             >
               {shop.name}
             </h2>
             <p
-              className={`text-[11px] font-medium leading-none mt-0.5 ${
+              className={`text-sm font-medium mt-1 ${
                 isDarkStand ? "text-zinc-400" : "text-stone-500"
               }`}
             >
