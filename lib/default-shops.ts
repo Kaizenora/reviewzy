@@ -8,7 +8,7 @@ export const DEFAULT_SHOPS: Shop[] = [
     location: "Kothrud, Pune",
     logoLetter: "M",
     brandColor: "#E36427",
-    googleReviewUrl: "https://search.google.com/local/writereview?placeid=ChIJgW1x7j_BwjsReO-3aHox_zY",
+    googleReviewUrl: "https://www.google.com/maps/search/?api=1&query=Cafe+Mokka+Kothrud+Pune",
     category: "Cafe & Restaurant",
     whatWentWellTags: [
       "Tasty food",
@@ -33,7 +33,7 @@ export const DEFAULT_SHOPS: Shop[] = [
     location: "Bandra West, Mumbai",
     logoLetter: "U",
     brandColor: "#8B5CF6",
-    googleReviewUrl: "https://search.google.com/local/writereview?placeid=ChIJ5TSp_WvCwjsR2X7QdZ9_gqI",
+    googleReviewUrl: "https://www.google.com/maps/search/?api=1&query=Urban+Salon+and+Spa+Bandra+West+Mumbai",
     category: "Salon & Wellness",
     whatWentWellTags: [
       "Great haircut",
@@ -57,7 +57,7 @@ export const DEFAULT_SHOPS: Shop[] = [
     location: "Indiranagar, Bengaluru",
     logoLetter: "A",
     brandColor: "#0284C7",
-    googleReviewUrl: "https://search.google.com/local/writereview?placeid=ChIJw_b9wRQXrjsRP3V6_u-gD08",
+    googleReviewUrl: "https://www.google.com/maps/search/?api=1&query=Apex+Smile+Dental+Indiranagar+Bengaluru",
     category: "Dental & Healthcare",
     whatWentWellTags: [
       "Painless treatment",
@@ -79,7 +79,7 @@ export const DEFAULT_SHOPS: Shop[] = [
     location: "Connaught Place, New Delhi",
     logoLetter: "S",
     brandColor: "#DC2626",
-    googleReviewUrl: "https://search.google.com/local/writereview?placeid=ChIJ4-uD07jjDDkRj_8W1o1Q3mY",
+    googleReviewUrl: "https://www.google.com/maps/search/?api=1&query=Sharma+Sweets+Chaat+Connaught+Place+New+Delhi",
     category: "Sweets & Street Food",
     whatWentWellTags: [
       "Authentic pure ghee taste",

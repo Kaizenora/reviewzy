@@ -12,6 +12,7 @@ import {
   Database,
   ArrowRight,
   Copy,
+  ExternalLink,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -54,6 +55,13 @@ export default function AdminPage() {
       .replace(/^-|-$/g, "");
     setSlug(autoSlug);
     setLogoLetter(val.charAt(0).toUpperCase() || "M");
+    if (!googleReviewUrl) {
+      setGoogleReviewUrl(
+        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          val + " " + location
+        )}`
+      );
+    }
   };
 
   const handleCreateShop = async (e: React.FormEvent) => {
@@ -69,7 +77,9 @@ export default function AdminPage() {
       brandColor,
       googleReviewUrl:
         googleReviewUrl.trim() ||
-        `https://search.google.com/local/writereview?placeid=${slug}`,
+        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          name + " " + location
+        )}`,
       whatWentWellTags: whatWentWellStr
         .split(",")
         .map((t) => t.trim())
@@ -111,20 +121,22 @@ export default function AdminPage() {
                 Reviewzy
               </span>
               <span className="bg-[#E36427]/10 text-[#E36427] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                Dashboard
+                Admin Panel
               </span>
             </div>
             <p className="text-xs text-stone-500 font-medium">
-              Manage shops, custom keywords, QR codes, and Google Review redirection.
+              Private merchant dashboard: manage shops, custom keywords, QR stands, and Google Maps links.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="text-xs font-semibold text-stone-600 hover:text-stone-900 px-3 py-2 rounded-full border border-stone-200 bg-white"
+              target="_blank"
+              className="text-xs font-semibold text-stone-600 hover:text-stone-900 px-3 py-2 rounded-full border border-stone-200 bg-white flex items-center gap-1.5"
             >
-              Demo Preview
+              <span>View Customer App</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </Link>
 
             <button
@@ -153,8 +165,8 @@ export default function AdminPage() {
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-stone-900">
                   {isSupabaseConfigured
-                    ? "Connected to Supabase"
-                    : "Using Local / Offline Storage"}
+                    ? "Supabase Connected & Syncing"
+                    : "Supabase Keys Configured (Pending URL)"}
                 </span>
                 <span
                   className={`inline-block w-2 h-2 rounded-full ${
@@ -163,21 +175,19 @@ export default function AdminPage() {
                 />
               </div>
               <p className="text-[11px] text-stone-500">
-                {isSupabaseConfigured
-                  ? "Live sync enabled across devices."
-                  : "Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env to sync with your Supabase DB."}
+                Anon Key is loaded. Add your <code>NEXT_PUBLIC_SUPABASE_URL</code> to <code>.env.local</code> to complete cloud sync. Local storage is fully active as backup.
               </p>
             </div>
           </div>
         </div>
 
-        {/* MODAL / DRAWER TO CREATE NEW SHOP */}
+        {/* MODAL / FORM TO CREATE NEW SHOP */}
         {isCreating && (
           <div className="mb-8 p-6 bg-white rounded-3xl border-2 border-[#E36427]/30 shadow-card animate-fadeIn">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
                 <Store className="w-4 h-4 text-[#E36427]" />
-                <span>Create New Shop & QR Flow</span>
+                <span>Create New Shop & QR Stand</span>
               </h2>
               <button
                 onClick={() => setIsCreating(false)}
@@ -220,7 +230,7 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-xs font-bold text-stone-700 block mb-1">
-                    URL Slug *
+                    Unique URL Slug *
                   </label>
                   <div className="flex items-center text-xs text-stone-500 border border-stone-200 rounded-xl px-3 py-2 bg-stone-50">
                     <span>/r/</span>
@@ -269,18 +279,18 @@ export default function AdminPage() {
 
               <div>
                 <label className="text-xs font-bold text-stone-700 block mb-1">
-                  Google Review Redirect URL *
+                  Google Maps Destination URL *
                 </label>
                 <input
                   type="url"
                   required
-                  placeholder="https://search.google.com/local/writereview?placeid=..."
+                  placeholder="https://www.google.com/maps/search/?api=1&query=..."
                   value={googleReviewUrl}
                   onChange={(e) => setGoogleReviewUrl(e.target.value)}
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
                 />
                 <p className="text-[10px] text-stone-400 mt-1">
-                  The Google Place review URL where customers are redirected after copying their review.
+                  Opens Google Maps app natively on mobile phones where the user is already signed in!
                 </p>
               </div>
 
@@ -320,7 +330,7 @@ export default function AdminPage() {
                   type="submit"
                   className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-6 py-2 rounded-full shadow-sm"
                 >
-                  Save & Create QR
+                  Save & Generate Stand
                 </button>
               </div>
             </form>
@@ -416,7 +426,7 @@ export default function AdminPage() {
                         className="bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors"
                       >
                         <QrCode className="w-3.5 h-3.5" />
-                        <span>QR Stand</span>
+                        <span>Print QR Stand</span>
                       </Link>
 
                       <Link
@@ -424,7 +434,7 @@ export default function AdminPage() {
                         target="_blank"
                         className="bg-[#E36427] hover:bg-[#D4561B] text-white px-3.5 py-1.5 rounded-full flex items-center gap-1 transition-colors"
                       >
-                        <span>Preview Flow</span>
+                        <span>Test Flow</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </div>

@@ -3,45 +3,35 @@
 import React, { useState, useEffect } from "react";
 import { Shop, ReviewStep, ReviewTone } from "@/types/shop";
 import {
-  Star,
   Sparkles,
   RotateCcw,
   Check,
   Copy,
   ExternalLink,
   Plus,
-  ArrowLeft,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { logReviewGenerated } from "@/lib/supabase";
 
 interface Props {
   shop: Shop;
-  onBackToHome?: () => void;
 }
 
-export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
+export default function CustomerReviewFlow({ shop }: Props) {
   const [step, setStep] = useState<ReviewStep>(1);
-  const [rating, setRating] = useState<number>(4);
-  const [selectedTags, setSelectedTags] = useState<string[]>([
-    "Tasty food",
-    "Friendly staff",
-    "Nice ambience",
-  ]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState("");
 
-  const [reviewDraft, setReviewDraft] = useState<string>(
-    "The food was tasty, the staff were friendly and the ambience was nice."
-  );
+  const [reviewDraft, setReviewDraft] = useState<string>("");
   const [displayedText, setDisplayedText] = useState<string>("");
   const [isTypingAnimation, setIsTypingAnimation] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTone, setActiveTone] = useState<ReviewTone>("standard");
   const [copied, setCopied] = useState(false);
 
-  // Synchronize initial tags if shop has specific tags
+  // Synchronize initial tags from shop preset
   useEffect(() => {
     if (shop.whatWentWellTags && shop.whatWentWellTags.length > 0) {
       setSelectedTags(shop.whatWentWellTags.slice(0, 3));
@@ -65,7 +55,7 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
     }
   };
 
-  // Generate review via API with typing animation
+  // Generate review via synthesizer with typing animation
   const generateReviewDraft = async (toneToUse: ReviewTone = "standard") => {
     setIsGenerating(true);
     setActiveTone(toneToUse);
@@ -77,7 +67,6 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
         body: JSON.stringify({
           shopName: shop.name,
           shopLocation: shop.location,
-          rating,
           selectedTags,
           customTags,
           tone: toneToUse,
@@ -85,16 +74,12 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
       });
 
       const data = await res.json();
-      const newReview =
-        data.review ||
-        "The food was tasty, the staff were friendly and the ambience was nice.";
-
+      const newReview = data.review || `Great experience at ${shop.name}! Highly recommended.`;
       setReviewDraft(newReview);
 
-      // Log generation for analytics if configured
       logReviewGenerated({
         shopSlug: shop.slug,
-        rating,
+        rating: 5,
         tags: selectedTags,
         reviewText: newReview,
         tone: toneToUse,
@@ -102,9 +87,7 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
 
       return newReview;
     } catch {
-      const fallback = `Great experience at ${shop.name}! ${selectedTags.join(
-        ", "
-      )} made our visit memorable.`;
+      const fallback = `Loved my visit to ${shop.name}! ${selectedTags.join(", ")} was really great.`;
       setReviewDraft(fallback);
       return fallback;
     } finally {
@@ -112,7 +95,7 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
     }
   };
 
-  // Trigger typing animation when entering Step 3 or rewriting
+  // Typing animation
   const startTypingAnimation = (fullText: string) => {
     setIsTypingAnimation(true);
     setDisplayedText("");
@@ -126,18 +109,17 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
         clearInterval(interval);
         setIsTypingAnimation(false);
       }
-    }, 20);
+    }, 18);
   };
 
   // Transition from Step 1 -> Step 2 -> Step 3
   const handleProceedToGenerate = async () => {
     setStep(2);
-    // Simulate generation time of Step 2 screen (matches screenshot 3)
     const reviewResult = await generateReviewDraft("standard");
     setTimeout(() => {
       setStep(3);
       startTypingAnimation(reviewResult);
-    }, 1800);
+    }, 1600);
   };
 
   // Tone rewrite buttons in Step 3
@@ -148,7 +130,7 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
     startTypingAnimation(newText);
   };
 
-  // Step 4 copy & redirect
+  // Step 4 copy & redirect to Google Maps (app deep-link avoids web login)
   const handleCopyAndOpenGoogle = () => {
     navigator.clipboard.writeText(reviewDraft);
     setCopied(true);
@@ -163,35 +145,30 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
       // ignore
     }
 
-    // Open Google Review URL after short delay
+    // Direct Google Maps search URL - opens Google Maps app on mobile without web login
+    const targetUrl =
+      shop.googleReviewUrl && !shop.googleReviewUrl.includes("search.google.com/local/writereview")
+        ? shop.googleReviewUrl
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            `${shop.name} ${shop.location}`
+          )}`;
+
     setTimeout(() => {
-      if (shop.googleReviewUrl) {
-        window.open(shop.googleReviewUrl, "_blank", "noopener,noreferrer");
-      }
-    }, 800);
+      window.open(targetUrl, "_blank", "noopener,noreferrer");
+    }, 700);
   };
 
   const totalPicked = selectedTags.length;
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] flex flex-col justify-between max-w-md mx-auto relative px-5 py-6 select-none font-sans">
-      {/* TOP HEADER: Step Indicator & Back Button */}
+      {/* TOP HEADER: 4-BAR STEP PROGRESS INDICATOR */}
       <div className="w-full">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold tracking-wider">
-            {onBackToHome && (
-              <button
-                onClick={onBackToHome}
-                className="hover:text-stone-800 transition-colors p-1 -ml-1 rounded-full"
-                title="Back to all shops"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <span>Scan · Review</span>
-          </div>
+          <span className="text-stone-500 text-xs font-semibold tracking-wide">
+            Scan · Review
+          </span>
 
-          {/* 4-BAR STEP PROGRESS INDICATOR */}
           <div className="flex items-center gap-1.5">
             {[1, 2, 3, 4].map((s) => (
               <div
@@ -221,38 +198,16 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
         </div>
 
         {/* ========================================================= */}
-        {/* SCREEN 1: HOW WAS YOUR VISIT? */}
+        {/* SCREEN 1: HOW WAS YOUR VISIT? (NO STAR PICKER) */}
         {/* ========================================================= */}
         {step === 1 && (
           <div className="animate-fadeIn">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#181715] tracking-tight mb-3">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[#181715] tracking-tight mb-2">
               How was your visit?
             </h1>
 
-            {/* STAR RATING PICKER */}
-            <div className="flex items-center gap-2 mb-2">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setRating(s)}
-                  className="transition-transform active:scale-95 focus:outline-none"
-                  aria-label={`${s} stars`}
-                >
-                  <Star
-                    className={`w-8 h-8 transition-colors ${
-                      s <= rating
-                        ? "fill-[#E36427] text-[#E36427]"
-                        : "fill-[#E8DFD1] text-[#E8DFD1]"
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
-
             <p className="text-xs text-stone-500 font-medium mb-6">
-              Stars help shape your draft. You will choose your Google rating
-              again when posting.
+              Pick what went well to shape your draft review.
             </p>
 
             {/* WHAT WENT WELL */}
@@ -379,7 +334,7 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
               Writing your review...
             </h1>
             <p className="text-sm text-stone-500 font-medium mb-6">
-              Using only your rating and what you picked.
+              Using only the points you picked.
             </p>
 
             {/* CARD WITH SPARKLE AND PICKED PILLS */}
@@ -405,13 +360,10 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
               </div>
             </div>
 
-            {/* Stars & language indicator */}
+            {/* Language & style indicator */}
             <div className="mt-5 text-xs text-stone-500 font-medium flex items-center gap-1.5">
-              <span className="text-[#E36427]">
-                {"★".repeat(rating)}
-                {"☆".repeat(5 - rating)}
-              </span>
-              <span>· English</span>
+              <span className="text-[#E36427] font-semibold">✨ Review Draft</span>
+              <span>· Authentic & Ready</span>
             </div>
           </div>
         )}
@@ -489,10 +441,9 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
               </button>
             </div>
 
-            {/* BASED ON RECAP */}
+            {/* BASED ON RECAP (NO STARS) */}
             <p className="text-xs text-stone-500 font-medium line-clamp-1 mb-2">
-              Based on: {"★".repeat(rating)}
-              {"☆".repeat(5 - rating)} · {selectedTags.join(" · ")}
+              Based on: {selectedTags.join(" · ")}
             </p>
           </div>
         )}
@@ -506,8 +457,7 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
               Last step: post on Google
             </h1>
             <p className="text-sm text-stone-500 font-medium mb-6">
-              We copy your review, then open {shop.name}&apos;s Google review
-              page.
+              We copy your review, then open {shop.name}&apos;s Google page.
             </p>
 
             {/* 3 NUMBERED STEPS */}
@@ -517,7 +467,7 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
                   1
                 </div>
                 <p className="text-sm text-stone-700 font-medium">
-                  Tap below. Your review is copied.
+                  Tap below. Your review is copied automatically.
                 </p>
               </div>
 
@@ -526,7 +476,7 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
                   2
                 </div>
                 <p className="text-sm text-stone-700 font-medium">
-                  On Google, paste it into the review box.
+                  On Google Maps, tap on Write a Review and paste it.
                 </p>
               </div>
 
@@ -535,22 +485,22 @@ export default function CustomerReviewFlow({ shop, onBackToHome }: Props) {
                   3
                 </div>
                 <p className="text-sm text-stone-700 font-medium">
-                  Choose your stars there and tap Post.
+                  Choose your stars and tap Post.
                 </p>
               </div>
             </div>
 
             {/* HELPFUL NOTE CARD */}
             <div className="rounded-2xl bg-[#F4EADA] border border-[#EBDDC8] p-4 text-xs text-stone-700 leading-relaxed font-normal mb-6">
-              Google may ask extra questions about the place. Answer based on
-              your experience; leave optional questions blank if you prefer.
+              Opens directly in Google Maps where you are already signed in.
+              Answer optional questions only if you prefer.
             </div>
 
             {/* COPY CONFIRMATION BADGE */}
             {copied && (
               <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 animate-bounce">
                 <Check className="w-4 h-4" />
-                <span>Copied to clipboard! Opening Google...</span>
+                <span>Copied to clipboard! Opening Google Maps...</span>
               </div>
             )}
           </div>
