@@ -1,15 +1,32 @@
-import { createClient } from "@supabase/supabase-js";
 import { Shop } from "@/types/shop";
 import { DEFAULT_SHOPS, getShopBySlugFromDefaults } from "./default-shops";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(
+  supabaseUrl &&
+    supabaseUrl.trim().length > 5 &&
+    supabaseAnonKey &&
+    supabaseAnonKey.trim().length > 5
+);
 
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl as string, supabaseAnonKey as string)
-  : null;
+// Lazy-loaded Supabase client to avoid webpack vendor chunk issues on Windows
+let supabaseInstance: any = null;
+
+async function getSupabase(): Promise<any> {
+  if (!isSupabaseConfigured) return null;
+  if (!supabaseInstance) {
+    try {
+      const { createClient } = await import("@supabase/supabase-js");
+      supabaseInstance = createClient(supabaseUrl!, supabaseAnonKey!);
+    } catch (err) {
+      console.warn("Could not load @supabase/supabase-js dynamically:", err);
+      return null;
+    }
+  }
+  return supabaseInstance;
+}
 
 // In-memory / local storage backup for client-side shop creation
 const LOCAL_STORAGE_KEY = "reviewzy_custom_businesses";
@@ -39,30 +56,30 @@ function saveLocalCustomShop(shop: Shop) {
 
 /**
  * Fetch all available businesses / shops
- * Works across Supabase (with multi-tenant RLS) and local storage fallback
  */
 export async function getAllShops(): Promise<Shop[]> {
-  if (supabase) {
+  const sb = await getSupabase();
+  if (sb) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from("businesses")
         .select("*")
         .eq("is_active", true)
         .order("created_at", { ascending: false });
 
       if (!error && data && data.length > 0) {
-        return data.map((item) => ({
-          id: item.id,
-          slug: item.slug,
-          name: item.name,
-          location: item.location,
-          logoLetter: item.logo_letter || item.name.charAt(0).toUpperCase(),
-          brandColor: item.brand_color || "#E36427",
-          googleReviewUrl: item.google_review_url,
-          whatWentWellTags: item.what_went_well_tags || [],
-          couldBeBetterTags: item.could_be_better_tags || [],
-          category: item.category || "General",
-          createdAt: item.created_at,
+        return data.map((item: Record<string, unknown>) => ({
+          id: String(item.id || ""),
+          slug: String(item.slug || ""),
+          name: String(item.name || ""),
+          location: String(item.location || ""),
+          logoLetter: String(item.logo_letter || String(item.name || "M").charAt(0).toUpperCase()),
+          brandColor: String(item.brand_color || "#E36427"),
+          googleReviewUrl: String(item.google_review_url || ""),
+          whatWentWellTags: (item.what_went_well_tags as string[]) || [],
+          couldBeBetterTags: (item.could_be_better_tags as string[]) || [],
+          category: String(item.category || "General"),
+          createdAt: String(item.created_at || ""),
         }));
       }
     } catch (err) {
@@ -79,12 +96,13 @@ export async function getAllShops(): Promise<Shop[]> {
 }
 
 /**
- * Fetch a single business by unique slug (for public customer QR scan flow)
+ * Fetch a single business by unique slug
  */
 export async function getShopBySlug(slug: string): Promise<Shop | null> {
-  if (supabase) {
+  const sb = await getSupabase();
+  if (sb) {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from("businesses")
         .select("*")
         .eq("slug", slug.toLowerCase())
@@ -92,18 +110,19 @@ export async function getShopBySlug(slug: string): Promise<Shop | null> {
         .maybeSingle();
 
       if (!error && data) {
+        const item = data as Record<string, unknown>;
         return {
-          id: data.id,
-          slug: data.slug,
-          name: data.name,
-          location: data.location,
-          logoLetter: data.logo_letter || data.name.charAt(0).toUpperCase(),
-          brandColor: data.brand_color || "#E36427",
-          googleReviewUrl: data.google_review_url,
-          whatWentWellTags: data.what_went_well_tags || [],
-          couldBeBetterTags: data.could_be_better_tags || [],
-          category: data.category || "General",
-          createdAt: data.created_at,
+          id: String(item.id || ""),
+          slug: String(item.slug || ""),
+          name: String(item.name || ""),
+          location: String(item.location || ""),
+          logoLetter: String(item.logo_letter || String(item.name || "M").charAt(0).toUpperCase()),
+          brandColor: String(item.brand_color || "#E36427"),
+          googleReviewUrl: String(item.google_review_url || ""),
+          whatWentWellTags: (item.what_went_well_tags as string[]) || [],
+          couldBeBetterTags: (item.could_be_better_tags as string[]) || [],
+          category: String(item.category || "General"),
+          createdAt: String(item.created_at || ""),
         };
       }
     } catch (err) {
@@ -125,7 +144,8 @@ export async function getShopBySlug(slug: string): Promise<Shop | null> {
  * Save or create a new tenant business
  */
 export async function saveShop(shop: Shop): Promise<Shop> {
-  if (supabase) {
+  const sb = await getSupabase();
+  if (sb) {
     try {
       const dbPayload = {
         slug: shop.slug.toLowerCase(),
@@ -140,17 +160,18 @@ export async function saveShop(shop: Shop): Promise<Shop> {
         is_active: true,
       };
 
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from("businesses")
-        .upsert(dbPayload, { onConflict: "slug" })
+        .upsert(dbPayload as any, { onConflict: "slug" })
         .select()
         .single();
 
       if (error) {
         console.error("Supabase businesses upsert error:", error);
       } else if (data) {
-        saveLocalCustomShop({ ...shop, id: data.id });
-        return { ...shop, id: data.id };
+        const item = data as Record<string, unknown>;
+        saveLocalCustomShop({ ...shop, id: String(item.id || shop.id) });
+        return { ...shop, id: String(item.id || shop.id) };
       }
     } catch (err) {
       console.error("Failed to save to Supabase:", err);
@@ -173,18 +194,20 @@ export async function logReviewGenerated(review: {
   tone: string;
   actionStatus?: string;
 }) {
-  if (supabase) {
+  const sb = await getSupabase();
+  if (sb) {
     try {
-      // Find business ID by slug if possible
-      const { data: business } = await supabase
+      const { data: business } = await sb
         .from("businesses")
         .select("id")
         .eq("slug", review.shopSlug)
         .maybeSingle();
 
-      await supabase.from("review_logs").insert([
+      const businessItem = business as Record<string, unknown> | null;
+
+      await sb.from("review_logs").insert([
         {
-          business_id: business?.id || null,
+          business_id: businessItem?.id || null,
           business_slug: review.shopSlug,
           rating: review.rating,
           selected_tags: review.tags,
@@ -192,7 +215,7 @@ export async function logReviewGenerated(review: {
           tone: review.tone,
           action_status: review.actionStatus || "copied_and_opened_google",
           created_at: new Date().toISOString(),
-        },
+        } as any,
       ]);
     } catch {
       // Silent error logging for analytics
