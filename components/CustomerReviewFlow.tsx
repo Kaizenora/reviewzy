@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Shop, ReviewTone } from "@/types/shop";
 import { logReviewGenerated } from "@/lib/supabase";
 import { generateVariedReview } from "@/lib/synthesizer";
 import confetti from "canvas-confetti";
 import {
-  Sparkles,
   Check,
   RotateCcw,
   Copy,
   ExternalLink,
   Plus,
   Star,
+  Pencil,
 } from "lucide-react";
 
 interface Props {
@@ -34,13 +34,42 @@ export default function CustomerReviewFlow({ shop }: Props) {
   // Tone state: natural (standard), short (shorter), hinglish (hinglish)
   const [activeTone, setActiveTone] = useState<ReviewTone>("standard");
 
-  // Review draft text in the box
-  const [reviewDraft, setReviewDraft] = useState<string>("");
+  // Review draft state (full target text vs displayed animated text)
+  const [fullReviewText, setFullReviewText] = useState<string>("");
+  const [displayedReviewText, setDisplayedReviewText] = useState<string>("");
+  const [isTyping, setIsTyping] = useState(false);
   const [isUserEdited, setIsUserEdited] = useState(false);
+
+  // Typing animation interval ref
+  const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Copy success & toast state
   const [copied, setCopied] = useState(false);
-  const [, startTransition] = useTransition();
+
+  // Smooth typewriter runner
+  const startTypewriter = (text: string) => {
+    if (typingTimerRef.current) {
+      clearInterval(typingTimerRef.current);
+    }
+
+    setIsTyping(true);
+    setDisplayedReviewText("");
+
+    let index = 0;
+    const len = text.length;
+
+    // Fast and responsive typewriter (advances 1-2 chars per tick)
+    typingTimerRef.current = setInterval(() => {
+      index += 2;
+      if (index >= len) {
+        setDisplayedReviewText(text);
+        setIsTyping(false);
+        if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+      } else {
+        setDisplayedReviewText(text.slice(0, index));
+      }
+    }, 14);
+  };
 
   // Generate initial review on mount or when shop changes
   useEffect(() => {
@@ -50,20 +79,26 @@ export default function CustomerReviewFlow({ shop }: Props) {
       customTags,
       activeTone
     );
-    setReviewDraft(text);
+    setFullReviewText(text);
     setIsUserEdited(false);
+    startTypewriter(text);
+
+    return () => {
+      if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shop.name]);
 
-  // Regenerate draft review whenever tags or tone change (unless user manually typed custom text)
-  const regenerateReview = (
+  // Regenerate draft review with typewriter effect
+  const triggerReviewUpdate = (
     tags: string[],
     customs: string[],
     tone: ReviewTone
   ) => {
     const text = generateVariedReview(shop.name, tags, customs, tone);
-    setReviewDraft(text);
+    setFullReviewText(text);
     setIsUserEdited(false);
+    startTypewriter(text);
   };
 
   // Toggle selection of tags
@@ -73,7 +108,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
       : [...selectedTags, tag];
 
     setSelectedTags(nextTags);
-    regenerateReview(nextTags, customTags, activeTone);
+    triggerReviewUpdate(nextTags, customTags, activeTone);
   };
 
   // Add custom tag
@@ -87,26 +122,45 @@ export default function CustomerReviewFlow({ shop }: Props) {
       setSelectedTags(nextSelected);
       setNewTagInput("");
       setIsAddingTag(false);
-      regenerateReview(nextSelected, nextCustoms, activeTone);
+      triggerReviewUpdate(nextSelected, nextCustoms, activeTone);
     }
   };
 
   // Switch tone
   const handleToneChange = (tone: ReviewTone) => {
     setActiveTone(tone);
-    regenerateReview(selectedTags, customTags, tone);
+    triggerReviewUpdate(selectedTags, customTags, tone);
   };
 
-  // Re-draft button to roll another variation
+  // Re-draft button to roll another variation from the extensive library
   const handleReDraft = () => {
-    startTransition(() => {
-      regenerateReview(selectedTags, customTags, activeTone);
-    });
+    triggerReviewUpdate(selectedTags, customTags, activeTone);
+  };
+
+  // Handle manual typing/editing in the textarea
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    // If typing animation was running, stop it and immediately take user's text
+    if (typingTimerRef.current) {
+      clearInterval(typingTimerRef.current);
+    }
+    setIsTyping(false);
+    setIsUserEdited(true);
+    setFullReviewText(e.target.value);
+    setDisplayedReviewText(e.target.value);
+  };
+
+  // If user clicks into textarea while typing, immediately show full text
+  const handleTextareaFocus = () => {
+    if (isTyping) {
+      if (typingTimerRef.current) clearInterval(typingTimerRef.current);
+      setIsTyping(false);
+      setDisplayedReviewText(fullReviewText);
+    }
   };
 
   // Copy to clipboard and launch Google Maps
   const handleCopyAndOpenGoogle = async () => {
-    const textToCopy = reviewDraft.trim();
+    const textToCopy = (isTyping ? fullReviewText : displayedReviewText).trim();
     if (!textToCopy) return;
 
     try {
@@ -287,28 +341,30 @@ export default function CustomerReviewFlow({ shop }: Props) {
         </div>
 
         {/* ========================================================= */}
-        {/* SECTION 2: AI REVIEW DRAFT BOX (ON THE SAME PAGE) */}
+        {/* SECTION 2: REVIEW EDITING BOX (NO AI BADGE + RICH VARIATION + EDITABLE) */}
         {/* ========================================================= */}
         <div className="bg-[#14141C] border border-[#262638] rounded-2xl p-4 shadow-xl mb-6">
-          {/* CARD HEADER: AI BADGE + TONE PILLS */}
+          {/* CARD HEADER: EDIT REVIEW LABEL + RE-DRAFT + TONE PILLS */}
           <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#222232]">
-            <div className="flex items-center gap-1.5">
-              <span className="flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wide bg-[#3B1B0F] text-[#FF9E6C] px-2.5 py-1 rounded-lg border border-[#E36427]/30">
-                <Sparkles className="w-3 h-3 text-[#E36427]" />
-                AI Generated Review
+            {/* LEFT: EDIT REVIEW LABEL & RE-DRAFT */}
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 text-xs font-bold text-zinc-200">
+                <Pencil className="w-3.5 h-3.5 text-[#E36427]" />
+                Edit review
               </span>
 
               <button
                 type="button"
                 onClick={handleReDraft}
-                title="Roll another variation"
-                className="p-1.5 text-zinc-400 hover:text-white hover:bg-[#20202E] rounded-lg transition-colors"
+                title="Change review wording"
+                className="flex items-center gap-1 text-[11px] font-semibold text-zinc-400 hover:text-white bg-[#1C1C28] hover:bg-[#252538] px-2.5 py-1 rounded-lg border border-[#2D2D40] transition-all active:scale-95"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3 h-3 text-[#E36427]" />
+                <span>Change</span>
               </button>
             </div>
 
-            {/* TONE SWITCHER PILLS */}
+            {/* RIGHT: TONE SWITCHER PILLS */}
             <div className="flex items-center gap-1 bg-[#1A1A26] p-1 rounded-xl border border-[#28283C]">
               <button
                 type="button"
@@ -346,24 +402,34 @@ export default function CustomerReviewFlow({ shop }: Props) {
             </div>
           </div>
 
-          {/* EDITABLE REVIEW TEXTAREA */}
+          {/* EDITABLE TEXTAREA WITH TYPEWRITER ANIMATION */}
           <div className="relative">
             <textarea
-              value={reviewDraft}
-              onChange={(e) => {
-                setReviewDraft(e.target.value);
-                setIsUserEdited(true);
-              }}
+              value={displayedReviewText}
+              onChange={handleTextareaChange}
+              onFocus={handleTextareaFocus}
               rows={4}
-              placeholder="Tap highlights above to craft your review..."
-              className="w-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 leading-relaxed outline-none resize-none font-medium selection:bg-[#E36427]/40"
+              placeholder="Tap highlights above or write your review directly here..."
+              className="w-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 leading-relaxed outline-none resize-none font-medium selection:bg-[#E36427]/40 cursor-text"
             />
 
-            {isUserEdited && (
-              <span className="absolute bottom-1 right-1 text-[10px] text-zinc-500">
-                Customized
-              </span>
+            {/* CURSOR BLINK WHILE TYPEWRITING */}
+            {isTyping && (
+              <span className="inline-block w-1.5 h-4 bg-[#E36427] ml-0.5 animate-pulse align-middle" />
             )}
+
+            {/* HELPER HINT AT BOTTOM OF BOX */}
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[10px] text-zinc-500">
+                Tap anywhere above to edit or add details
+              </span>
+
+              {isUserEdited && (
+                <span className="text-[10px] text-[#FFA575] font-semibold">
+                  Customized
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -384,8 +450,8 @@ export default function CustomerReviewFlow({ shop }: Props) {
         <button
           type="button"
           onClick={handleCopyAndOpenGoogle}
-          disabled={!reviewDraft.trim()}
-          className="w-full py-4 px-5 rounded-2xl bg-[#E36427] hover:bg-[#D4551A] text-white font-black text-base shadow-xl shadow-[#E36427]/30 flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none mb-4"
+          disabled={!displayedReviewText.trim()}
+          className="w-full py-4 px-5 rounded-2xl bg-[#E36427] hover:bg-[#D4551A] text-white font-black text-base shadow-xl shadow-[#E36427]/30 flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none mb-4 cursor-pointer"
         >
           <Copy className="w-5 h-5" />
           <span>Copy review & open Google</span>
