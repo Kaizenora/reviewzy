@@ -12,6 +12,7 @@
         --accent: #E36427;
         --accent-glow: rgba(227, 100, 39, 0.4);
         --gold: #FBBF24;
+        --google-blue: #1A73E8;
         --ink: #FFFFFF;
         --muted: #CBD5E1;
         --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -166,16 +167,16 @@
         object-fit: contain;
       }
 
-      /* Scene 2 & 3: Interactive Phone */
+      /* Phone Frame */
       .phone-container {
         position: relative;
-        width: 520px;
-        height: 880px;
+        width: 530px;
+        height: 900px;
         background: #0E0E14;
         border: 4px solid #2F2F44;
         border-radius: 50px;
         box-shadow: 0 25px 70px rgba(0,0,0,0.9), 0 0 60px rgba(227, 100, 39, 0.25);
-        padding: 34px 30px;
+        padding: 28px 26px;
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -186,14 +187,23 @@
         height: 22px;
         background: #1C1C28;
         border-radius: 20px;
-        margin-bottom: 24px;
+        margin-bottom: 18px;
       }
+
+      /* Reviewzy App Screen inside Phone */
+      .phone-subscreen {
+        position: absolute;
+        inset: 60px 24px 24px 24px;
+        display: flex;
+        flex-direction: column;
+      }
+
       .phone-header {
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 18px;
       }
       .phone-title {
         font-size: 32px;
@@ -230,10 +240,10 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
       }
       .chip {
-        padding: 10px 20px;
+        padding: 10px 18px;
         background: #1A1A28;
         border: 1.5px solid #383850;
         border-radius: 999px;
@@ -256,8 +266,8 @@
         background: #161622;
         border: 1.5px solid #383850;
         border-radius: 20px;
-        padding: 22px;
-        margin-bottom: 22px;
+        padding: 20px;
+        margin-bottom: 20px;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
@@ -298,7 +308,7 @@
       .draft-text {
         font-size: 16px;
         font-weight: 600;
-        line-height: 1.55;
+        line-height: 1.5;
         color: #FFFFFF;
         min-height: 80px;
       }
@@ -324,7 +334,7 @@
       /* Toast */
       .toast {
         position: absolute;
-        bottom: 110px;
+        bottom: 90px;
         left: 50%;
         transform: translateX(-50%) translateY(30px);
         background: #16A34A;
@@ -332,7 +342,7 @@
         color: #FFFFFF;
         font-size: 16px;
         font-weight: 800;
-        padding: 14px 28px;
+        padding: 12px 24px;
         border-radius: 999px;
         box-shadow: 0 10px 30px rgba(22, 163, 74, 0.5);
         opacity: 0;
@@ -340,12 +350,173 @@
         align-items: center;
         gap: 10px;
         white-space: nowrap;
+        z-index: 50;
+      }
+
+      /* GOOGLE MAPS NATIVE REVIEW SCREEN */
+      .gmaps-screen {
+        position: absolute;
+        inset: 60px 24px 24px 24px;
+        background: #202124;
+        border-radius: 28px;
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        transform: translateY(40px);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      }
+      .gmaps-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #3C4043;
+      }
+      .gmaps-close {
+        color: #E8EAED;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .gmaps-place-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .gmaps-post-btn {
+        background: var(--google-blue);
+        color: #FFFFFF;
+        border: none;
+        padding: 8px 22px;
+        border-radius: 999px;
+        font-size: 16px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(26, 115, 232, 0.4);
+      }
+
+      .gmaps-user-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .gmaps-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #EA4335;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .gmaps-user-info {
+        display: flex;
+        flex-direction: column;
+      }
+      .gmaps-username {
+        font-size: 16px;
+        font-weight: 700;
+        color: #FFFFFF;
+      }
+      .gmaps-public-notice {
+        font-size: 13px;
+        color: #9AA0A6;
+      }
+
+      .gmaps-stars-block {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .gmaps-stars-block svg {
+        width: 38px;
+        height: 38px;
+        fill: var(--gold);
+      }
+
+      .gmaps-textarea-box {
+        position: relative;
+        background: #303134;
+        border: 2px solid #5F6368;
+        border-radius: 16px;
+        padding: 18px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      .gmaps-textarea-placeholder {
+        font-size: 15px;
+        color: #9AA0A6;
+      }
+      .gmaps-pasted-content {
+        font-size: 16px;
+        line-height: 1.5;
+        color: #FFFFFF;
+        font-weight: 500;
+        opacity: 0;
+      }
+      .gmaps-paste-tooltip {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        background: #FFFFFF;
+        color: #202124;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 800;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        opacity: 0;
+        transform: scale(0.85);
+      }
+
+      /* Google Post Success Overlay */
+      .gmaps-success-badge {
+        position: absolute;
+        inset: 0;
+        background: rgba(32, 33, 36, 0.95);
+        border-radius: 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .gmaps-success-badge svg {
+        width: 72px;
+        height: 72px;
+        fill: #34A853;
+        margin-bottom: 16px;
+      }
+      .gmaps-success-text {
+        font-size: 26px;
+        font-weight: 800;
+        color: #FFFFFF;
+        margin-bottom: 6px;
+      }
+      .gmaps-success-subtext {
+        font-size: 16px;
+        color: #9AA0A6;
       }
 
       /* Side Callouts */
       .side-feature {
         position: absolute;
-        width: 420px;
+        width: 440px;
         background: rgba(20, 20, 28, 0.92);
         border: 2px solid rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(20px);
@@ -366,11 +537,11 @@
         color: #CBD5E1;
       }
       .feature-left {
-        left: 100px;
+        left: 80px;
         top: 340px;
       }
       .feature-right {
-        right: 100px;
+        right: 80px;
         top: 340px;
       }
 
@@ -382,7 +553,7 @@
         text-align: center;
       }
       .brand-title {
-        font-size: 100px;
+        font-size: 104px;
         font-weight: 900;
         letter-spacing: -0.04em;
         margin-bottom: 16px;
@@ -392,7 +563,7 @@
         color: var(--accent);
       }
       .tagline {
-        font-size: 38px;
+        font-size: 40px;
         font-weight: 700;
         color: #F1F5F9;
         margin-bottom: 36px;
@@ -401,9 +572,9 @@
         background: rgba(227, 100, 39, 0.2);
         border: 2px solid #E36427;
         color: #FFA575;
-        font-size: 32px;
+        font-size: 34px;
         font-weight: 800;
-        padding: 16px 48px;
+        padding: 16px 52px;
         border-radius: 999px;
         margin-bottom: 48px;
         box-shadow: 0 0 45px var(--accent-glow);
@@ -463,7 +634,7 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="18.5"
+      data-duration="21.5"
       data-width="1920"
       data-height="1080"
     >
@@ -473,7 +644,7 @@
       <audio
         id="bg-music"
         data-start="0"
-        data-duration="18.5"
+        data-duration="21.5"
         data-track-index="1"
         data-volume="0.32"
         src="assets/music/happy-beats-business-moves-vol-1-by-ende-dot-app.mp3"
@@ -488,7 +659,7 @@
       ></audio>
       <audio
         id="sfx-chip1"
-        data-start="4.5"
+        data-start="4.2"
         data-duration="0.10"
         data-track-index="3"
         data-volume="0.5"
@@ -496,7 +667,7 @@
       ></audio>
       <audio
         id="sfx-chip2"
-        data-start="5.5"
+        data-start="5.0"
         data-duration="0.10"
         data-track-index="4"
         data-volume="0.5"
@@ -504,7 +675,7 @@
       ></audio>
       <audio
         id="sfx-chip3"
-        data-start="6.5"
+        data-start="5.8"
         data-duration="0.10"
         data-track-index="5"
         data-volume="0.5"
@@ -512,22 +683,38 @@
       ></audio>
       <audio
         id="sfx-copy"
-        data-start="12.4"
+        data-start="10.8"
         data-duration="0.26"
         data-track-index="6"
         data-volume="0.75"
         src="assets/sfx/casino/chips-collide-1.ogg"
       ></audio>
       <audio
-        id="sfx-bell"
-        data-start="15.2"
-        data-duration="1.48"
+        id="sfx-paste"
+        data-start="13.6"
+        data-duration="0.10"
         data-track-index="7"
+        data-volume="0.6"
+        src="assets/sfx/interface/click_001.ogg"
+      ></audio>
+      <audio
+        id="sfx-post"
+        data-start="15.5"
+        data-duration="0.26"
+        data-track-index="8"
+        data-volume="0.75"
+        src="assets/sfx/casino/chips-collide-1.ogg"
+      ></audio>
+      <audio
+        id="sfx-bell"
+        data-start="17.8"
+        data-duration="1.48"
+        data-track-index="9"
         data-volume="0.8"
         src="assets/sfx/impact/impactBell_heavy_000.ogg"
       ></audio>
 
-      <!-- SCENE 1: THE COUNTER STAND REVEAL (Settled at t=0s for instant poster frame) -->
+      <!-- SCENE 1: THE COUNTER STAND REVEAL (Settled at t=0s for poster frame) -->
       <div id="scene-1" class="scene-layer">
         <div class="stand-wrapper">
           <div id="hook-pill" class="hook-badge">Stop Begging For Reviews</div>
@@ -600,56 +787,114 @@
         </div>
       </div>
 
-      <!-- SCENE 2 & 3: INTERACTIVE PHONE DEMO -->
+      <!-- SCENE 2 & 3: PHONE WORKFLOW (REVIEWZY -> GOOGLE MAPS PASTING) -->
       <div id="scene-2" class="scene-layer" style="opacity: 0;">
         <div id="callout-left" class="side-feature feature-left">
-          <h3>⚡ Zero Friction</h3>
-          <p>No app download. No login wall. Customers tap positive highlights in 30 seconds.</p>
+          <h3 id="callout-left-title">⚡ Zero Friction</h3>
+          <p id="callout-left-desc">No app download. No login wall. Customers tap positive highlights in 30 seconds.</p>
         </div>
 
         <div id="phone-body" class="phone-container">
           <div class="phone-notch"></div>
-          <div class="phone-header">
-            <h2 class="phone-title">Cafe Mokka</h2>
-            <div class="phone-stars">
-              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+
+          <!-- REVIEWZY DRAFTING SUBSCREEN -->
+          <div id="reviewzy-subscreen" class="phone-subscreen">
+            <div class="phone-header">
+              <h2 class="phone-title">Cafe Mokka</h2>
+              <div class="phone-stars">
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              </div>
+              <p class="phone-subtitle" data-layout-ignore="true">Tap highlights to craft your review</p>
             </div>
-            <p class="phone-subtitle" data-layout-ignore="true">Tap highlights to craft your review</p>
+
+            <div class="section-label" data-layout-ignore="true">What went well?</div>
+            <div class="chips-grid">
+              <div id="chip-1" class="chip" data-layout-ignore="true"><span>Tasty food</span></div>
+              <div id="chip-2" class="chip" data-layout-ignore="true"><span>Friendly staff</span></div>
+              <div id="chip-3" class="chip" data-layout-ignore="true"><span>Nice ambience</span></div>
+              <div id="chip-4" class="chip" data-layout-ignore="true"><span>Fast service</span></div>
+              <div id="chip-5" class="chip" data-layout-ignore="true"><span>Great coffee</span></div>
+            </div>
+
+            <div class="draft-card">
+              <div class="draft-header">
+                <span class="ai-badge" data-layout-ignore="true">✦ AI Generated Review</span>
+                <div class="tone-pills">
+                  <span class="tone-pill active" data-layout-ignore="true">Natural</span>
+                  <span class="tone-pill" data-layout-ignore="true">Short</span>
+                  <span class="tone-pill" data-layout-ignore="true">Hinglish</span>
+                </div>
+              </div>
+              <div id="typewriter-text" class="draft-text" data-layout-ignore="true"></div>
+            </div>
+
+            <button id="cta-btn" class="cta-button" data-layout-ignore="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy review & open Google</span>
+            </button>
           </div>
 
-          <div class="section-label" data-layout-ignore="true">What went well?</div>
-          <div class="chips-grid">
-            <div id="chip-1" class="chip" data-layout-ignore="true"><span>Tasty food</span></div>
-            <div id="chip-2" class="chip" data-layout-ignore="true"><span>Friendly staff</span></div>
-            <div id="chip-3" class="chip" data-layout-ignore="true"><span>Nice ambience</span></div>
-            <div id="chip-4" class="chip" data-layout-ignore="true"><span>Fast service</span></div>
-            <div id="chip-5" class="chip" data-layout-ignore="true"><span>Great coffee</span></div>
-          </div>
+          <!-- GOOGLE MAPS REVIEW SCREEN (PASTING STEP) -->
+          <div id="gmaps-screen" class="gmaps-screen">
+            <div class="gmaps-topbar">
+              <span class="gmaps-close" data-layout-ignore="true">✕</span>
+              <div class="gmaps-place-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#EA4335">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                <span>Cafe Mokka</span>
+              </div>
+              <button id="gmaps-post-btn" class="gmaps-post-btn" data-layout-ignore="true">Post</button>
+            </div>
 
-          <div class="draft-card">
-            <div class="draft-header">
-              <span class="ai-badge" data-layout-ignore="true">✦ AI Generated Review</span>
-              <div class="tone-pills">
-                <span class="tone-pill active" data-layout-ignore="true">Natural</span>
-                <span class="tone-pill" data-layout-ignore="true">Short</span>
-                <span class="tone-pill" data-layout-ignore="true">Hinglish</span>
+            <div class="gmaps-user-row">
+              <div class="gmaps-avatar">A</div>
+              <div class="gmaps-user-info">
+                <span class="gmaps-username" data-layout-ignore="true">Alex Malhotra</span>
+                <span class="gmaps-public-notice" data-layout-ignore="true">Posting publicly across Google</span>
               </div>
             </div>
-            <div id="typewriter-text" class="draft-text" data-layout-ignore="true"></div>
+
+            <div class="gmaps-stars-block">
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            </div>
+
+            <div class="gmaps-textarea-box">
+              <span id="gmaps-placeholder" class="gmaps-textarea-placeholder" data-layout-ignore="true">Share details of your own experience at this place...</span>
+              <div id="gmaps-pasted-text" class="gmaps-pasted-content" data-layout-ignore="true">
+                Had an amazing time at Cafe Mokka! The tasty food and friendly staff truly made our visit special. Loved the cozy ambience as well. Highly recommended! ⭐⭐⭐⭐⭐
+              </div>
+              <div id="paste-tooltip" class="gmaps-paste-tooltip" data-layout-ignore="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>
+                <span>Paste</span>
+              </div>
+            </div>
+
+            <!-- Published Checkmark -->
+            <div id="gmaps-success" class="gmaps-success-badge">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              <div class="gmaps-success-text">Review Published!</div>
+              <div class="gmaps-success-subtext">5-star rating live on Google Maps</div>
+            </div>
           </div>
 
-          <button id="cta-btn" class="cta-button" data-layout-ignore="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-            <span>Copy review & open Google</span>
-          </button>
-
+          <!-- Toast Alert -->
           <div id="copied-toast" class="toast" data-layout-ignore="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
               <polyline points="20 6 9 17 4 12"></polyline>
@@ -659,8 +904,8 @@
         </div>
 
         <div id="callout-right" class="side-feature feature-right">
-          <h3>📍 Native Google Maps</h3>
-          <p>Deep-links directly into the Google Maps app. Customer is already signed in — paste and done!</p>
+          <h3 id="callout-right-title">📍 Instant 1-Tap Paste</h3>
+          <p id="callout-right-desc">Direct deep-link lands right on Google Maps review sheet. Paste and publish in seconds!</p>
         </div>
 
         <div id="confetti" class="confetti-box"></div>
@@ -700,7 +945,7 @@
     </div>
 
     <script>
-      // Deterministic confetti particles (no Math.random)
+      // Deterministic confetti particles
       const confettiBox = document.getElementById("confetti");
       const colors = ["#E36427", "#FBBF24", "#38BDF8", "#4ADE80", "#F43F5E", "#A855F7"];
       const particleCount = 36;
@@ -714,7 +959,7 @@
         confettiBox.appendChild(p);
       }
 
-      const reviewSentence = "Had a wonderful experience at Cafe Mokka! The tasty food and friendly staff truly stood out. Loved the cozy ambience as well. Highly recommended! ⭐⭐⭐⭐⭐";
+      const reviewSentence = "Had an amazing time at Cafe Mokka! The tasty food and friendly staff truly made our visit special. Loved the cozy ambience as well. Highly recommended! ⭐⭐⭐⭐⭐";
       const typewriterEl = document.getElementById("typewriter-text");
 
       // Master Timeline
@@ -727,55 +972,55 @@
       tl.set("#acrylic-stand", { opacity: 1, scale: 1, rotationX: 0, y: 0 }, 0);
 
       // Subtle float animation for Stand in Scene 1
-      tl.to("#acrylic-stand", { y: -10, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.5);
+      tl.to("#acrylic-stand", { y: -10, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.4);
 
-      // Scene 1 Exit (3.5s - 3.8s)
-      tl.to("#scene-1", { opacity: 0, scale: 0.94, duration: 0.3, ease: "power2.in" }, 3.5);
+      // Scene 1 Exit (3.2s - 3.5s)
+      tl.to("#scene-1", { opacity: 0, scale: 0.94, duration: 0.3, ease: "power2.in" }, 3.2);
 
-      // Scene 2 & 3 Entrance (3.8s)
-      tl.to("#scene-2", { opacity: 1, duration: 0.2 }, 3.8);
+      // Scene 2 Entrance (3.5s)
+      tl.to("#scene-2", { opacity: 1, duration: 0.2 }, 3.5);
       tl.fromTo("#phone-body", 
         { scale: 0.88, y: 50 }, 
         { scale: 1, y: 0, duration: 0.5, ease: "power4.out" }, 
-        3.85
+        3.55
       );
       tl.fromTo("#callout-left", 
         { opacity: 0, x: -30 }, 
         { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 
-        4.1
+        3.8
       );
 
-      // Interactive Chip Taps (beat-snapped: 4.5s, 5.5s, 6.5s)
-      tl.to("#chip-1", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 4.5);
-      tl.to("#chip-1", { scale: 1.0, duration: 0.12 }, 4.62);
+      // Interactive Chip Taps (4.2s, 5.0s, 5.8s)
+      tl.to("#chip-1", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 4.2);
+      tl.to("#chip-1", { scale: 1.0, duration: 0.12 }, 4.32);
 
-      tl.to("#chip-2", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 5.5);
-      tl.to("#chip-2", { scale: 1.0, duration: 0.12 }, 5.62);
+      tl.to("#chip-2", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 5.0);
+      tl.to("#chip-2", { scale: 1.0, duration: 0.12 }, 5.12);
 
-      tl.to("#chip-3", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 6.5);
-      tl.to("#chip-3", { scale: 1.0, duration: 0.12 }, 6.62);
+      tl.to("#chip-3", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 5.8);
+      tl.to("#chip-3", { scale: 1.0, duration: 0.12 }, 5.92);
 
       tl.fromTo("#callout-right", 
         { opacity: 0, x: 30 }, 
         { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 
-        6.8
+        6.0
       );
 
-      // Deterministic Typewriter Animation (7.5s - 11.5s)
+      // Typewriter Animation (6.4s - 10.0s)
       const totalChars = reviewSentence.length;
       for (let i = 1; i <= totalChars; i++) {
-        const timeProgress = 7.5 + (i / totalChars) * 3.8;
+        const timeProgress = 6.4 + (i / totalChars) * 3.6;
         const textSlice = reviewSentence.slice(0, i);
         tl.call(() => {
           typewriterEl.textContent = textSlice;
         }, null, timeProgress);
       }
 
-      // CTA Button Click at 12.4s (beat-locked)
-      tl.to("#cta-btn", { scale: 0.94, duration: 0.1, ease: "power1.in" }, 12.35);
-      tl.to("#cta-btn", { scale: 1.0, duration: 0.15, ease: "power1.out" }, 12.45);
+      // CTA Button Click at 10.8s (beat-locked)
+      tl.to("#cta-btn", { scale: 0.94, duration: 0.1, ease: "power1.in" }, 10.75);
+      tl.to("#cta-btn", { scale: 1.0, duration: 0.15, ease: "power1.out" }, 10.85);
 
-      // Confetti burst (deterministic math)
+      // Confetti burst
       const pieces = document.querySelectorAll(".confetti-piece");
       pieces.forEach((piece, idx) => {
         const angle = (idx / particleCount) * Math.PI * 2;
@@ -785,8 +1030,8 @@
         
         tl.fromTo(piece, 
           { opacity: 1, scale: 0, x: 0, y: 0, rotation: 0 }, 
-          { opacity: 0, scale: 1.2, x: targetX, y: targetY, rotation: 360, duration: 1.4, ease: "power3.out" }, 
-          12.4
+          { opacity: 0, scale: 1.2, x: targetX, y: targetY, rotation: 360, duration: 1.2, ease: "power3.out" }, 
+          10.8
         );
       });
 
@@ -794,38 +1039,76 @@
       tl.fromTo("#copied-toast", 
         { opacity: 0, y: 30, scale: 0.9 }, 
         { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.7)" }, 
-        12.6
+        11.0
       );
 
-      // Scene 2 Exit (14.6s - 14.9s)
-      tl.to("#scene-2", { opacity: 0, scale: 0.92, duration: 0.3, ease: "power2.in" }, 14.6);
+      // ==========================================
+      // GOOGLE MAPS TRANSITION (12.0s - 17.2s)
+      // ==========================================
+      // Fade out Reviewzy subscreen & toast
+      tl.to("#reviewzy-subscreen", { opacity: 0, scale: 0.95, duration: 0.3, ease: "power2.in" }, 12.0);
+      tl.to("#copied-toast", { opacity: 0, duration: 0.2 }, 12.0);
 
-      // Scene 4 Outro Entrance (15.0s, beat 15.2s)
-      tl.to("#scene-3", { opacity: 1, duration: 0.2 }, 15.0);
+      // Slide up Google Maps Native Screen
+      tl.to("#gmaps-screen", { opacity: 1, y: 0, duration: 0.5, ease: "power4.out" }, 12.3);
+
+      // Update side callout to reflect Google Maps
+      tl.call(() => {
+        document.getElementById("callout-left-title").textContent = "Google Maps Native";
+        document.getElementById("callout-left-desc").textContent = "Deep-links straight to the official Maps review sheet with the user already logged in.";
+      }, null, 12.5);
+
+      // Show "Paste" tooltip floating on text area at 13.0s
+      tl.to("#paste-tooltip", { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(1.7)" }, 13.0);
+
+      // Click "Paste" at 13.6s
+      tl.to("#paste-tooltip", { scale: 0.9, duration: 0.1 }, 13.55);
+      tl.to("#paste-tooltip", { opacity: 0, scale: 1.1, duration: 0.15 }, 13.65);
+
+      // Instant Paste Action: Hide placeholder, reveal review text!
+      tl.to("#gmaps-placeholder", { opacity: 0, display: "none", duration: 0.05 }, 13.65);
+      tl.to("#gmaps-pasted-text", { opacity: 1, duration: 0.1 }, 13.65);
+
+      // Highlight Google "Post" button at 15.0s
+      tl.to("#gmaps-post-btn", { scale: 1.12, duration: 0.25, ease: "power2.out" }, 15.2);
+      // Click Post at 15.5s
+      tl.to("#gmaps-post-btn", { scale: 0.94, duration: 0.1 }, 15.45);
+      tl.to("#gmaps-post-btn", { scale: 1.0, duration: 0.15 }, 15.55);
+
+      // Success Checkmark Overlay on Google Maps
+      tl.to("#gmaps-success", { opacity: 1, duration: 0.35, ease: "power3.out" }, 15.7);
+
+      // Scene 2 Exit (17.0s - 17.3s)
+      tl.to("#scene-2", { opacity: 0, scale: 0.92, duration: 0.3, ease: "power2.in" }, 17.0);
+
+      // ==========================================
+      // SCENE 4: (17.4s - 21.5s) Outro Slate (Beat 17.8s)
+      // ==========================================
+      tl.to("#scene-3", { opacity: 1, duration: 0.2 }, 17.4);
       tl.fromTo("#outro-title", 
         { opacity: 0, scale: 0.8, y: -25 }, 
         { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power4.out" }, 
-        15.1
+        17.5
       );
       tl.fromTo("#outro-tagline", 
         { opacity: 0, y: 20 }, 
         { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 
-        15.4
+        17.8
       );
       tl.fromTo("#outro-pill", 
         { opacity: 0, scale: 0.9, y: 20 }, 
         { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out(1.5)" }, 
-        15.7
+        18.1
       );
       tl.fromTo("#outro-features", 
         { opacity: 0, y: 25 }, 
         { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 
-        16.0
+        18.4
       );
       tl.fromTo("#outro-footer", 
         { opacity: 0, y: 20 }, 
         { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 
-        16.3
+        18.7
       );
 
       // Register timeline for Hyperframes
