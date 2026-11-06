@@ -9,7 +9,15 @@ Customers scan a table QR code, tap what they liked, and get a natural review dr
 ## 📱 App Preview
 
 <p align="center">
-  <img src="public/screenshots/app-preview.png" alt="Reviewzy customer review flow — Cafe Mokka" width="300" />
+  <video src="https://raw.githubusercontent.com/Kaizenora/reviewzy/main/public/screenshots/preview.mp4"
+         controls
+         autoplay
+         loop
+         muted
+         playsinline
+         width="300"
+         style="border-radius:16px">
+  </video>
 </p>
 
 **Live demo:** [reviewzy.vercel.app](https://reviewzy.vercel.app)
