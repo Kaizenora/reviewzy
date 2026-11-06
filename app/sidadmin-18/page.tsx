@@ -24,7 +24,7 @@ import {
   X,
 } from "lucide-react";
 
-export default function AdminPage() {
+export default function PrivateAdminPage() {
   const [shops, setShops] = useState<Shop[]>(DEFAULT_SHOPS);
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -223,7 +223,7 @@ ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.review_logs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public can view active businesses by slug" ON public.businesses FOR SELECT USING (is_active = true);
-CREATE POLICY "Public can insert businesses" ON public.businesses FOR ALL USING (true);
+CREATE POLICY "Public can insert and update businesses" ON public.businesses FOR ALL USING (true);
 CREATE POLICY "Customers can insert review submissions" ON public.review_logs FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USING (true);`;
 
@@ -233,20 +233,20 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-8 px-4 font-sans text-stone-900">
+    <div className="min-h-screen bg-[#0B0B0E] text-zinc-100 py-8 px-4 font-sans">
       <div className="max-w-5xl mx-auto">
         {/* HEADER */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#E7DFD2]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#22222E]">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xl font-extrabold tracking-tight text-[#181715]">
+              <span className="text-xl font-extrabold tracking-tight text-white">
                 Reviewzy
               </span>
-              <span className="bg-[#E36427]/10 text-[#E36427] text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="bg-[#E36427]/20 text-[#FF7A38] border border-[#E36427]/30 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                 Private Admin Panel
               </span>
             </div>
-            <p className="text-xs text-stone-500 font-medium">
+            <p className="text-xs text-zinc-400 font-medium">
               Click &ldquo;Edit Details &amp; Logo&rdquo; on any card below to change logos, keywords, location, and Google Maps links.
             </p>
           </div>
@@ -255,15 +255,15 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
             <Link
               href="/"
               target="_blank"
-              className="text-xs font-semibold text-stone-600 hover:text-stone-900 px-3 py-2 rounded-full border border-stone-200 bg-white flex items-center gap-1.5"
+              className="text-xs font-semibold text-zinc-300 hover:text-white px-3.5 py-2 rounded-full border border-[#272736] bg-[#14141C] hover:bg-[#1D1D28] flex items-center gap-1.5 transition-colors"
             >
               <span>Preview Customer App</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5 text-zinc-400" />
             </Link>
 
             <button
               onClick={handleOpenCreateModal}
-              className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-5 py-2.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all"
+              className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-5 py-2.5 rounded-full flex items-center gap-1.5 shadow-button transition-all"
             >
               <Plus className="w-4 h-4" />
               <span>Create New Business</span>
@@ -272,21 +272,21 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
         </div>
 
         {/* SUPABASE CLOUD SYNC BANNER */}
-        <div className="mb-6 p-5 rounded-2xl bg-white border border-[#E7DFD2] shadow-sm">
+        <div className="mb-6 p-5 rounded-2xl bg-[#14141C] border border-[#262634] shadow-md">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
                 <Database className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-stone-900">
+                  <span className="text-sm font-bold text-white">
                     Supabase Connected &amp; Synced
                   </span>
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
-                <p className="text-xs text-stone-500 mt-1 max-w-xl leading-relaxed">
-                  Connected to <code>wrfqhxbedrgwqyizbsut.supabase.co</code>. If you haven&apos;t run the SQL schema yet, click below to copy the schema and run it in your Supabase SQL editor so your tables are live!
+                <p className="text-xs text-zinc-400 mt-1 max-w-xl leading-relaxed">
+                  Connected to <code className="text-zinc-200 bg-[#1D1D2A] px-1.5 py-0.5 rounded">wrfqhxbedrgwqyizbsut.supabase.co</code>. Tables <code className="text-zinc-200 bg-[#1D1D2A] px-1.5 py-0.5 rounded">businesses</code> and <code className="text-zinc-200 bg-[#1D1D2A] px-1.5 py-0.5 rounded">review_logs</code> are active with real-time multi-tenant sync!
                 </p>
               </div>
             </div>
@@ -294,12 +294,12 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
             <button
               type="button"
               onClick={handleCopySchema}
-              className="text-xs font-bold text-stone-800 bg-[#FAF7F2] hover:bg-stone-200 border border-[#E7DFD2] px-4 py-2.5 rounded-full flex items-center gap-1.5 self-start md:self-center transition-colors whitespace-nowrap shadow-sm"
+              className="text-xs font-bold text-zinc-200 bg-[#1A1A24] hover:bg-[#242432] border border-[#2D2D3E] px-4 py-2.5 rounded-full flex items-center gap-1.5 self-start md:self-center transition-colors whitespace-nowrap shadow-sm"
             >
               {copiedSchema ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
-                  <span className="text-emerald-700 font-extrabold">Copied SQL Schema!</span>
+                  <Check className="w-4 h-4 text-emerald-400 stroke-[2.5]" />
+                  <span className="text-emerald-400 font-extrabold">Copied SQL Schema!</span>
                 </>
               ) : (
                 <>
@@ -313,16 +313,16 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
 
         {/* CREATE / EDIT SHOP MODAL */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white rounded-3xl border border-[#E7DFD2] p-6 max-w-xl w-full shadow-2xl my-8 animate-fadeIn max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-5 pb-3 border-b border-stone-100">
-                <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-[#14141C] text-zinc-100 rounded-3xl border border-[#2A2A3C] p-6 max-w-xl w-full shadow-2xl my-8 animate-fadeIn max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#242434]">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <Store className="w-5 h-5 text-[#E36427]" />
                   <span>{editingShopSlug ? `Edit: ${name || "Business"}` : "Create New Business"}</span>
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="text-stone-400 hover:text-stone-700 p-1.5 rounded-full text-base transition-colors"
+                  className="text-zinc-400 hover:text-white p-1.5 rounded-full text-base transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -330,8 +330,8 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
 
               <form onSubmit={handleSaveShop} className="space-y-4">
                 {/* LOGO CUSTOMIZATION & UPLOAD */}
-                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E7DFD2]">
-                  <label className="text-xs font-bold text-stone-800 block mb-2">
+                <div className="bg-[#181824] p-4 rounded-2xl border border-[#28283A]">
+                  <label className="text-xs font-bold text-zinc-200 block mb-2">
                     Shop Logo (Upload Custom Image or Choose Badge)
                   </label>
                   <div className="flex items-center gap-4">
@@ -342,7 +342,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                         <img
                           src={logoUrl}
                           alt="Logo Preview"
-                          className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md"
+                          className="w-16 h-16 rounded-2xl object-cover border-2 border-[#38384E] shadow-md"
                         />
                       ) : (
                         <div
@@ -359,7 +359,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="bg-white border border-stone-300 hover:bg-stone-50 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm transition-colors"
+                          className="bg-[#20202E] border border-[#323246] hover:bg-[#2A2A3C] text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm transition-colors"
                         >
                           <Upload className="w-3.5 h-3.5 text-[#E36427]" />
                           <span>Upload Logo Image</span>
@@ -376,7 +376,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                           <button
                             type="button"
                             onClick={() => setLogoUrl("")}
-                            className="text-xs text-rose-600 hover:text-rose-800 font-bold px-2 py-1"
+                            className="text-xs text-rose-400 hover:text-rose-300 font-bold px-2 py-1"
                           >
                             Remove Logo Image
                           </button>
@@ -390,17 +390,17 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                           placeholder="Or paste image URL (https://...)"
                           value={logoUrl}
                           onChange={(e) => setLogoUrl(e.target.value)}
-                          className="flex-1 px-3 py-1.5 rounded-lg border border-stone-200 outline-none text-xs bg-white focus:border-[#E36427]"
+                          className="flex-1 px-3 py-1.5 rounded-lg border border-[#2E2E40] outline-none text-xs bg-[#111118] text-white focus:border-[#E36427]"
                         />
                         <div className="flex items-center gap-1">
-                          <span className="text-[11px] font-medium text-stone-500">Letter:</span>
+                          <span className="text-[11px] font-medium text-zinc-400">Letter:</span>
                           <input
                             type="text"
                             maxLength={2}
                             placeholder="M"
                             value={logoLetter}
                             onChange={(e) => setLogoLetter(e.target.value.toUpperCase())}
-                            className="w-9 py-1.5 text-center font-bold rounded-lg border border-stone-200 outline-none text-xs bg-white"
+                            className="w-9 py-1.5 text-center font-bold rounded-lg border border-[#2E2E40] outline-none text-xs bg-[#111118] text-white"
                           />
                         </div>
                       </div>
@@ -411,7 +411,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                 {/* NAME & LOCATION */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                    <label className="text-xs font-bold text-zinc-300 block mb-1">
                       Business Name *
                     </label>
                     <input
@@ -420,12 +420,12 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                       placeholder="e.g. Cafe Mokka"
                       value={name}
                       onChange={(e) => handleNameChange(e.target.value)}
-                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                    <label className="text-xs font-bold text-zinc-300 block mb-1">
                       Location / Area *
                     </label>
                     <input
@@ -434,7 +434,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                       placeholder="e.g. Kothrud, Pune"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
                     />
                   </div>
                 </div>
@@ -442,10 +442,10 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                 {/* SLUG, CATEGORY, BRAND COLOR */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                    <label className="text-xs font-bold text-zinc-300 block mb-1">
                       URL Slug *
                     </label>
-                    <div className="flex items-center text-xs text-stone-500 border border-stone-200 rounded-xl px-2.5 py-2 bg-stone-50">
+                    <div className="flex items-center text-xs text-zinc-400 border border-[#2E2E40] rounded-xl px-2.5 py-2 bg-[#111118]">
                       <span>/r/</span>
                       <input
                         type="text"
@@ -453,25 +453,25 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                         disabled={Boolean(editingShopSlug)}
                         value={slug}
                         onChange={(e) => setSlug(e.target.value)}
-                        className="w-full bg-transparent outline-none font-semibold text-stone-800 disabled:opacity-60"
+                        className="w-full bg-transparent outline-none font-semibold text-white disabled:opacity-60"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                    <label className="text-xs font-bold text-zinc-300 block mb-1">
                       Category
                     </label>
                     <input
                       type="text"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                      className="w-full text-xs px-3.5 py-2 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                    <label className="text-xs font-bold text-zinc-300 block mb-1">
                       Brand Color
                     </label>
                     <div className="flex items-center gap-2">
@@ -485,7 +485,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                         type="text"
                         value={brandColor}
                         onChange={(e) => setBrandColor(e.target.value)}
-                        className="w-full text-xs px-2 py-1.5 rounded-xl border border-stone-200 outline-none uppercase font-mono"
+                        className="w-full text-xs px-2 py-1.5 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none uppercase font-mono"
                       />
                     </div>
                   </div>
@@ -493,7 +493,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
 
                 {/* GOOGLE MAPS DESTINATION */}
                 <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">
+                  <label className="text-xs font-bold text-zinc-300 block mb-1">
                     Google Maps Destination URL *
                   </label>
                   <input
@@ -502,52 +502,52 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                     placeholder="https://www.google.com/maps/search/?api=1&query=..."
                     value={googleReviewUrl}
                     onChange={(e) => setGoogleReviewUrl(e.target.value)}
-                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
                   />
-                  <p className="text-[10px] text-stone-400 mt-1">
+                  <p className="text-[10px] text-zinc-500 mt-1">
                     Opens directly in the Google Maps app where users are already signed in.
                   </p>
                 </div>
 
                 {/* WHAT WENT WELL KEYWORDS */}
                 <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">
+                  <label className="text-xs font-bold text-zinc-300 block mb-1">
                     &ldquo;WHAT WENT WELL&rdquo; Keywords (comma-separated)
                   </label>
                   <textarea
                     rows={2}
                     value={whatWentWellStr}
                     onChange={(e) => setWhatWentWellStr(e.target.value)}
-                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
                   />
                 </div>
 
                 {/* COULD BE BETTER KEYWORDS */}
                 <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">
+                  <label className="text-xs font-bold text-zinc-300 block mb-1">
                     &ldquo;COULD BE BETTER&rdquo; Keywords (comma-separated)
                   </label>
                   <textarea
                     rows={2}
                     value={couldBeBetterStr}
                     onChange={(e) => setCouldBeBetterStr(e.target.value)}
-                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
                   />
                 </div>
 
-                <div className="flex justify-end gap-2 pt-3 border-t border-stone-100">
+                <div className="flex justify-end gap-2 pt-3 border-t border-[#242434]">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 rounded-full border border-stone-200 text-xs font-semibold hover:bg-stone-50"
+                    className="text-xs font-bold text-zinc-400 hover:text-white px-4 py-2"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-6 py-2 rounded-full shadow-button transition-all"
+                    className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-6 py-2.5 rounded-full shadow-button transition-all"
                   >
-                    {editingShopSlug ? "Save Changes" : "Save & Generate Stand"}
+                    {editingShopSlug ? "Save Changes" : "Create Business"}
                   </button>
                 </div>
               </form>
@@ -558,7 +558,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
         {/* SHOPS LIST */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-stone-600 uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">
               Active Businesses ({shops.length})
             </h2>
             <button
@@ -571,7 +571,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
           </div>
 
           {loading ? (
-            <div className="text-xs text-stone-500 py-10 text-center">
+            <div className="text-xs text-zinc-500 py-10 text-center">
               Loading shops...
             </div>
           ) : (
@@ -579,7 +579,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
               {shops.map((s) => (
                 <div
                   key={s.slug}
-                  className="bg-white rounded-3xl border border-[#E7DFD2] p-5 shadow-card hover:shadow-md transition-shadow flex flex-col justify-between relative group"
+                  className="bg-[#14141C] rounded-3xl border border-[#262634] p-5 shadow-lg hover:border-[#38384C] transition-all flex flex-col justify-between relative group"
                 >
                   <div>
                     {/* TOP INFO */}
@@ -595,7 +595,7 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                           <img
                             src={s.logoUrl}
                             alt={s.name}
-                            className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-stone-200 flex-shrink-0"
+                            className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-[#2C2C3E] flex-shrink-0"
                           />
                         ) : (
                           <div
@@ -607,22 +607,22 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                         )}
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h3 className="font-bold text-stone-900 text-base leading-tight hover:text-[#E36427] transition-colors">
+                            <h3 className="font-bold text-white text-base leading-tight hover:text-[#E36427] transition-colors">
                               {s.name}
                             </h3>
-                            <Edit2 className="w-3 h-3 text-stone-400 group-hover:text-[#E36427] transition-colors" />
+                            <Edit2 className="w-3 h-3 text-zinc-500 group-hover:text-[#E36427] transition-colors" />
                           </div>
-                          <p className="text-xs text-stone-500">{s.location}</p>
+                          <p className="text-xs text-zinc-400">{s.location}</p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] bg-stone-100 font-semibold text-stone-600 px-2.5 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-[#1F1F2C] border border-[#2D2D3E] font-semibold text-zinc-300 px-2.5 py-0.5 rounded-full">
                           {s.category || "Shop"}
                         </span>
                         <button
                           onClick={() => handleDeleteShop(s.slug)}
-                          className="p-1.5 text-stone-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
                           title="Delete Business"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -632,20 +632,20 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
 
                     {/* KEYWORDS PREVIEW */}
                     <div className="mb-4">
-                      <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">
+                      <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
                         What Went Well ({s.whatWentWellTags?.length || 0})
                       </p>
                       <div className="flex flex-wrap gap-1">
                         {s.whatWentWellTags?.slice(0, 4).map((tag) => (
                           <span
                             key={tag}
-                            className="text-[10px] bg-[#FAF7F2] border border-[#E7DFD2] text-stone-700 px-2 py-0.5 rounded-full font-medium"
+                            className="text-[10px] bg-[#1A1A24] border border-[#282838] text-zinc-300 px-2 py-0.5 rounded-full font-medium"
                           >
                             ✓ {tag}
                           </span>
                         ))}
                         {(s.whatWentWellTags?.length || 0) > 4 && (
-                          <span className="text-[10px] text-stone-400 font-medium self-center">
+                          <span className="text-[10px] text-zinc-500 font-medium self-center">
                             +{s.whatWentWellTags.length - 4} more
                           </span>
                         )}
@@ -653,17 +653,17 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                     </div>
                   </div>
 
-                  {/* BOTTOM ACTION BAR - CLEAR & PROMINENT */}
-                  <div className="pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
+                  {/* BOTTOM ACTION BAR */}
+                  <div className="pt-3 border-t border-[#222230] flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
                     <button
                       onClick={() => copyShopUrl(s.slug)}
-                      className="text-stone-600 hover:text-stone-900 flex items-center gap-1"
+                      className="text-zinc-400 hover:text-white flex items-center gap-1"
                       title="Copy customer link"
                     >
                       {copiedSlug === s.slug ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span className="text-emerald-600 font-bold">Copied!</span>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400 font-bold">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -674,27 +674,27 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                     </button>
 
                     <div className="flex items-center gap-2">
-                      {/* HIGHLY VISIBLE EDIT BUTTON */}
+                      {/* EDIT DETAILS BUTTON */}
                       <button
                         onClick={() => handleOpenEditModal(s)}
-                        className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors font-bold text-xs"
+                        className="bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border border-amber-800/60 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors font-bold text-xs"
                       >
-                        <Edit2 className="w-3.5 h-3.5 text-amber-700" />
+                        <Edit2 className="w-3.5 h-3.5 text-amber-400" />
                         <span>Edit Details &amp; Logo</span>
                       </button>
 
                       <Link
                         href={`/r/${s.slug}/qr`}
-                        className="bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors"
+                        className="bg-[#1C1C26] hover:bg-[#252534] text-zinc-200 border border-[#2D2D3E] px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors"
                       >
-                        <QrCode className="w-3.5 h-3.5" />
+                        <QrCode className="w-3.5 h-3.5 text-[#E36427]" />
                         <span>Print Stand</span>
                       </Link>
 
                       <Link
                         href={`/r/${s.slug}`}
                         target="_blank"
-                        className="bg-[#E36427] hover:bg-[#D4561B] text-white px-3.5 py-1.5 rounded-full flex items-center gap-1 transition-colors shadow-sm"
+                        className="bg-[#E36427] hover:bg-[#D4561B] text-white px-3.5 py-1.5 rounded-full flex items-center gap-1 transition-colors shadow-button"
                       >
                         <span>Test Flow</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -707,13 +707,19 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
           )}
         </div>
 
-        {/* BRANDED FOOTER */}
-        <div className="mt-12 pt-6 border-t border-[#E7DFD2] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-500 font-medium">
-          <p>© {new Date().getFullYear()} Reviewzy Multi-Tenant Platform</p>
-          <div className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity">
-            <span className="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Designed by</span>
+        {/* PROMINENT DARK THEME BRANDED FOOTER */}
+        <div className="mt-12 pt-6 border-t border-[#222230] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500 font-medium">
+          <p>© {new Date().getFullYear()} Reviewzy Multi-Tenant Platform · All rights reserved</p>
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#15151D] border border-[#2B2B3C] shadow-md hover:border-[#3E3E54] transition-all">
+            <span className="text-[11px] font-bold tracking-wider uppercase text-zinc-300">
+              Designed by
+            </span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/sg-logo.png" alt="SG" className="h-5 w-auto object-contain inline-block" />
+            <img
+              src="/sg-logo.png"
+              alt="SG Logo"
+              className="h-6 w-auto object-contain filter drop-shadow-[0_1px_4px_rgba(234,179,8,0.35)]"
+            />
           </div>
         </div>
       </div>

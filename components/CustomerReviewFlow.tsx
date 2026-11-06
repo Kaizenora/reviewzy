@@ -1,53 +1,61 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Shop, ReviewStep, ReviewTone } from "@/types/shop";
+import { Shop, ReviewTone } from "@/types/shop";
+import { logReviewGenerated } from "@/lib/supabase";
+import confetti from "canvas-confetti";
 import {
   Sparkles,
-  RotateCcw,
   Check,
+  RotateCcw,
   Copy,
   ExternalLink,
   Plus,
 } from "lucide-react";
-import confetti from "canvas-confetti";
-import { logReviewGenerated } from "@/lib/supabase";
 
 interface Props {
   shop: Shop;
 }
 
 export default function CustomerReviewFlow({ shop }: Props) {
-  const [step, setStep] = useState<ReviewStep>(1);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  // Navigation: Step 1 (Options) -> Step 2 (Thinking/Writing) -> Step 3 (Draft Review) -> Step 4 (Post Google)
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+
+  // Selected tags
+  const [selectedTags, setSelectedTags] = useState<string[]>([
+    shop.whatWentWellTags[0] || "Tasty food",
+    shop.whatWentWellTags[1] || "Friendly staff",
+  ]);
+
+  // Custom tags added by user
   const [customTags, setCustomTags] = useState<string[]>([]);
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState("");
 
+  // Review Draft state
   const [reviewDraft, setReviewDraft] = useState<string>("");
-  const [displayedText, setDisplayedText] = useState<string>("");
-  const [isTypingAnimation, setIsTypingAnimation] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [activeTone, setActiveTone] = useState<ReviewTone>("standard");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Typewriter effect state
+  const [displayedText, setDisplayedText] = useState("");
+  const [isTypingAnimation, setIsTypingAnimation] = useState(false);
+
+  // Copy success state
   const [copied, setCopied] = useState(false);
 
-  // Synchronize initial tags from shop preset
-  useEffect(() => {
-    if (shop.whatWentWellTags && shop.whatWentWellTags.length > 0) {
-      setSelectedTags(shop.whatWentWellTags.slice(0, 3));
-    }
-  }, [shop]);
-
+  // Toggle selection of tags
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
+  // Add custom tag
   const handleAddCustomTag = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = newTagInput.trim();
-    if (trimmed && !selectedTags.includes(trimmed)) {
+    if (trimmed && !customTags.includes(trimmed)) {
       setCustomTags((prev) => [...prev, trimmed]);
       setSelectedTags((prev) => [...prev, trimmed]);
       setNewTagInput("");
@@ -55,97 +63,117 @@ export default function CustomerReviewFlow({ shop }: Props) {
     }
   };
 
-  // Generate review via synthesizer with typing animation
-  const generateReviewDraft = async (toneToUse: ReviewTone = "standard") => {
-    setIsGenerating(true);
-    setActiveTone(toneToUse);
+  // Trigger typewriter effect for freshly drafted text
+  useEffect(() => {
+    if (reviewDraft && step === 3) {
+      setIsTypingAnimation(true);
+      setDisplayedText("");
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < reviewDraft.length) {
+          setDisplayedText(reviewDraft.slice(0, i + 1));
+          i++;
+        } else {
+          clearInterval(interval);
+          setIsTypingAnimation(false);
+        }
+      }, 14);
 
+      return () => clearInterval(interval);
+    }
+  }, [reviewDraft, step]);
+
+  // Call synthesizer API
+  const generateReviewFromApi = async (tone: ReviewTone = "standard") => {
+    setIsGenerating(true);
     try {
       const res = await fetch("/api/generate-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          shopSlug: shop.slug,
           shopName: shop.name,
-          shopLocation: shop.location,
-          selectedTags,
-          customTags,
-          tone: toneToUse,
+          category: shop.category || "General",
+          tags: selectedTags,
+          tone,
         }),
       });
 
       const data = await res.json();
-      const newReview = data.review || `Great experience at ${shop.name}! Highly recommended.`;
-      setReviewDraft(newReview);
-
-      logReviewGenerated({
-        shopSlug: shop.slug,
-        rating: 5,
-        tags: selectedTags,
-        reviewText: newReview,
-        tone: toneToUse,
-      });
-
-      return newReview;
-    } catch {
-      const fallback = `Loved my visit to ${shop.name}! ${selectedTags.join(", ")} was really great.`;
-      setReviewDraft(fallback);
-      return fallback;
+      if (data && data.review) {
+        setReviewDraft(data.review);
+        setActiveTone(tone);
+      }
+    } catch (err) {
+      console.error("Failed to generate review:", err);
+      setReviewDraft(
+        `Visited ${shop.name} in ${shop.location}. Really enjoyed the experience! ${selectedTags.join(
+          ", "
+        )}. Definitely recommend stopping by.`
+      );
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // Typing animation
-  const startTypingAnimation = (fullText: string) => {
-    setIsTypingAnimation(true);
-    setDisplayedText("");
-    let currentIndex = 0;
-
-    const interval = setInterval(() => {
-      if (currentIndex <= fullText.length) {
-        setDisplayedText(fullText.slice(0, currentIndex));
-        currentIndex++;
-      } else {
-        clearInterval(interval);
-        setIsTypingAnimation(false);
-      }
-    }, 18);
-  };
-
-  // Transition from Step 1 -> Step 2 -> Step 3
+  // Proceed from Step 1 to Step 2 then auto-advance to Step 3
   const handleProceedToGenerate = async () => {
+    if (selectedTags.length === 0) return;
     setStep(2);
-    const reviewResult = await generateReviewDraft("standard");
-    setTimeout(() => {
-      setStep(3);
-      startTypingAnimation(reviewResult);
-    }, 1600);
+
+    // Call API and set brief realistic animation timer
+    const apiPromise = generateReviewFromApi("standard");
+    const timerPromise = new Promise((resolve) => setTimeout(resolve, 1400));
+
+    await Promise.all([apiPromise, timerPromise]);
+    setStep(3);
   };
 
-  // Tone rewrite buttons in Step 3
+  // Switch tone in Step 3
   const handleToneChange = async (tone: ReviewTone) => {
-    setIsTypingAnimation(true);
-    setDisplayedText("");
-    const newText = await generateReviewDraft(tone);
-    startTypingAnimation(newText);
+    if (tone === activeTone || isGenerating) return;
+    await generateReviewFromApi(tone);
   };
 
-  // Step 4 copy & redirect to Google Maps (app deep-link avoids web login)
-  const handleCopyAndOpenGoogle = () => {
-    navigator.clipboard.writeText(reviewDraft);
-    setCopied(true);
-
+  // Step 4: Copy to clipboard and launch Google Review URL
+  const handleCopyAndOpenGoogle = async () => {
+    const textToCopy = reviewDraft || displayedText;
     try {
-      confetti({
-        particleCount: 70,
-        spread: 60,
-        origin: { y: 0.8 },
-      });
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
     } catch {
-      // ignore
+      const textarea = document.createElement("textarea");
+      textarea.value = textToCopy;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCopied(true);
     }
 
-    // Direct Google Maps search URL - opens Google Maps app on mobile without web login
+    // Trigger celebration confetti
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.8 },
+        colors: ["#E36427", "#F59E0B", "#10B981", "#8B5CF6"],
+      });
+    } catch {
+      // Confetti fallback
+    }
+
+    // Log review activity
+    logReviewGenerated({
+      shopSlug: shop.slug,
+      rating: 5,
+      tags: selectedTags,
+      reviewText: textToCopy,
+      tone: activeTone,
+      actionStatus: "copied_and_opened_google",
+    });
+
+    // Deep-link to Google Maps
     const targetUrl =
       shop.googleReviewUrl && !shop.googleReviewUrl.includes("search.google.com/local/writereview")
         ? shop.googleReviewUrl
@@ -161,11 +189,11 @@ export default function CustomerReviewFlow({ shop }: Props) {
   const totalPicked = selectedTags.length;
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] flex flex-col justify-between max-w-md mx-auto relative px-5 py-6 select-none font-sans">
+    <div className="min-h-screen bg-[#0B0B0E] text-zinc-100 flex flex-col justify-between max-w-md mx-auto relative px-5 py-6 select-none font-sans">
       {/* TOP HEADER: 4-BAR STEP PROGRESS INDICATOR */}
       <div className="w-full">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-stone-500 text-xs font-semibold tracking-wide">
+          <span className="text-zinc-500 text-xs font-semibold tracking-wide">
             Scan · Review
           </span>
 
@@ -174,7 +202,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
               <div
                 key={s}
                 className={`h-1.5 w-8 rounded-full transition-all duration-300 ${
-                  s <= step ? "bg-[#E36427]" : "bg-[#EAE2D5]"
+                  s <= step ? "bg-[#E36427]" : "bg-[#22222C]"
                 }`}
               />
             ))}
@@ -188,21 +216,21 @@ export default function CustomerReviewFlow({ shop }: Props) {
             <img
               src={shop.logoUrl}
               alt={shop.name}
-              className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-[#E7DFD2]"
+              className="w-12 h-12 rounded-2xl object-cover shadow-md border border-[#272736]"
             />
           ) : (
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-sm"
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-md"
               style={{ backgroundColor: shop.brandColor || "#E36427" }}
             >
               {shop.logoLetter || shop.name.charAt(0)}
             </div>
           )}
           <div>
-            <h2 className="text-xl font-bold text-[#181715] leading-tight">
+            <h2 className="text-xl font-bold text-white leading-tight">
               {shop.name}
             </h2>
-            <p className="text-xs text-stone-500 font-medium">{shop.location}</p>
+            <p className="text-xs text-zinc-400 font-medium">{shop.location}</p>
           </div>
         </div>
 
@@ -211,17 +239,17 @@ export default function CustomerReviewFlow({ shop }: Props) {
         {/* ========================================================= */}
         {step === 1 && (
           <div className="animate-fadeIn">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#181715] tracking-tight mb-2">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
               How was your visit?
             </h1>
 
-            <p className="text-xs text-stone-500 font-medium mb-6">
+            <p className="text-xs text-zinc-400 font-medium mb-6">
               Pick what went well to shape your draft review.
             </p>
 
             {/* WHAT WENT WELL */}
             <div className="mb-6">
-              <span className="text-[11px] font-bold tracking-wider text-stone-500 uppercase block mb-3">
+              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase block mb-3">
                 WHAT WENT WELL
               </span>
               <div className="flex flex-wrap gap-2">
@@ -234,8 +262,8 @@ export default function CustomerReviewFlow({ shop }: Props) {
                       onClick={() => toggleTag(tag)}
                       className={`text-xs font-medium px-4 py-2 rounded-full transition-all flex items-center gap-1.5 ${
                         isSelected
-                          ? "bg-[#181715] text-white shadow-sm"
-                          : "bg-[#FAF7F2] text-[#181715] border border-[#E7DFD2] hover:bg-[#F3EDE2]"
+                          ? "bg-[#E36427] text-white shadow-button font-bold border border-[#E36427]"
+                          : "bg-[#16161E] text-zinc-300 border border-[#272736] hover:bg-[#20202A] hover:border-[#38384C]"
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
@@ -248,7 +276,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
 
             {/* COULD BE BETTER */}
             <div className="mb-6">
-              <span className="text-[11px] font-bold tracking-wider text-stone-500 uppercase block mb-3">
+              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase block mb-3">
                 COULD BE BETTER
               </span>
               <div className="flex flex-wrap gap-2">
@@ -261,8 +289,8 @@ export default function CustomerReviewFlow({ shop }: Props) {
                       onClick={() => toggleTag(tag)}
                       className={`text-xs font-medium px-4 py-2 rounded-full transition-all flex items-center gap-1.5 ${
                         isSelected
-                          ? "bg-[#181715] text-white shadow-sm"
-                          : "bg-[#FAF7F2] text-[#181715] border-[1.5px] border-dashed border-[#D5CCBD] hover:bg-[#F3EDE2]"
+                          ? "bg-[#E36427] text-white shadow-button font-bold border border-[#E36427]"
+                          : "bg-[#16161E] text-zinc-300 border-[1.5px] border-dashed border-[#343448] hover:bg-[#20202A]"
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
@@ -281,8 +309,8 @@ export default function CustomerReviewFlow({ shop }: Props) {
                       onClick={() => toggleTag(tag)}
                       className={`text-xs font-medium px-4 py-2 rounded-full transition-all flex items-center gap-1.5 ${
                         isSelected
-                          ? "bg-[#181715] text-white shadow-sm"
-                          : "bg-[#FAF7F2] text-[#181715] border border-[#E7DFD2]"
+                          ? "bg-[#E36427] text-white shadow-button font-bold border border-[#E36427]"
+                          : "bg-[#16161E] text-zinc-300 border border-[#272736]"
                       }`}
                     >
                       {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
@@ -295,7 +323,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
                 {isAddingTag ? (
                   <form
                     onSubmit={handleAddCustomTag}
-                    className="flex items-center gap-1"
+                    className="flex items-center gap-1.5"
                   >
                     <input
                       type="text"
@@ -303,7 +331,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
                       placeholder="e.g. Great coffee"
                       value={newTagInput}
                       onChange={(e) => setNewTagInput(e.target.value)}
-                      className="text-xs px-3 py-1.5 rounded-full border border-[#E36427] bg-white outline-none w-32"
+                      className="text-xs px-3 py-1.5 rounded-full border border-[#E36427] bg-[#16161E] text-white outline-none w-32"
                     />
                     <button
                       type="submit"
@@ -314,7 +342,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
                     <button
                       type="button"
                       onClick={() => setIsAddingTag(false)}
-                      className="text-xs text-stone-500 px-1"
+                      className="text-xs text-zinc-400 hover:text-white px-1"
                     >
                       ✕
                     </button>
@@ -323,9 +351,9 @@ export default function CustomerReviewFlow({ shop }: Props) {
                   <button
                     type="button"
                     onClick={() => setIsAddingTag(true)}
-                    className="text-xs font-medium px-4 py-2 rounded-full border border-[#E7DFD2] bg-[#FAF7F2] text-[#181715] hover:bg-[#F3EDE2] transition-colors flex items-center gap-1"
+                    className="text-xs font-medium px-4 py-2 rounded-full border border-[#272736] bg-[#16161E] text-zinc-300 hover:bg-[#20202A] transition-colors flex items-center gap-1"
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className="w-3 h-3 text-[#E36427]" />
                     <span>Add my own</span>
                   </button>
                 )}
@@ -339,19 +367,19 @@ export default function CustomerReviewFlow({ shop }: Props) {
         {/* ========================================================= */}
         {step === 2 && (
           <div className="animate-fadeIn py-2">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#181715] tracking-tight mb-2">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
               Writing your review...
             </h1>
-            <p className="text-sm text-stone-500 font-medium mb-6">
+            <p className="text-sm text-zinc-400 font-medium mb-6">
               Using only the points you picked.
             </p>
 
             {/* CARD WITH SPARKLE AND PICKED PILLS */}
-            <div className="rounded-3xl border border-[#E9DFD2] bg-[#FAF6EE] p-8 flex flex-col items-center justify-center text-center shadow-card min-h-[220px]">
+            <div className="rounded-3xl border border-[#262634] bg-[#14141C] p-8 flex flex-col items-center justify-center text-center shadow-2xl min-h-[220px]">
               <div className="mb-4 text-[#E36427] animate-pulse-glow">
-                <Sparkles className="w-8 h-8 fill-[#E36427]/20" />
+                <Sparkles className="w-8 h-8 fill-[#E36427]/30" />
               </div>
-              <h3 className="text-sm font-semibold text-stone-700 mb-5">
+              <h3 className="text-sm font-semibold text-zinc-300 mb-5">
                 Turning your choices into a short review
               </h3>
 
@@ -360,9 +388,9 @@ export default function CustomerReviewFlow({ shop }: Props) {
                 {selectedTags.map((tag) => (
                   <div
                     key={tag}
-                    className="bg-[#181715] text-white text-xs font-medium px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm"
+                    className="bg-[#20202C] border border-[#303042] text-zinc-200 text-xs font-medium px-3.5 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm"
                   >
-                    <Check className="w-3 h-3 stroke-[2.5]" />
+                    <Check className="w-3 h-3 text-[#E36427] stroke-[2.5]" />
                     <span>{tag}</span>
                   </div>
                 ))}
@@ -370,7 +398,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
             </div>
 
             {/* Language & style indicator */}
-            <div className="mt-5 text-xs text-stone-500 font-medium flex items-center gap-1.5">
+            <div className="mt-5 text-xs text-zinc-400 font-medium flex items-center gap-1.5">
               <span className="text-[#E36427] font-semibold">✨ Review Draft</span>
               <span>· Authentic & Ready</span>
             </div>
@@ -382,15 +410,15 @@ export default function CustomerReviewFlow({ shop }: Props) {
         {/* ========================================================= */}
         {step === 3 && (
           <div className="animate-fadeIn">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#181715] tracking-tight mb-1.5">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-1.5">
               Your draft
             </h1>
-            <p className="text-sm text-stone-500 font-medium mb-4">
+            <p className="text-sm text-zinc-400 font-medium mb-4">
               Edit it freely. It is your review.
             </p>
 
             {/* EDITABLE DRAFT CONTAINER */}
-            <div className="rounded-2xl border border-[#E9DFD2] bg-[#FAF6EE] p-4 relative mb-4">
+            <div className="rounded-2xl border border-[#282838] bg-[#14141C] p-4 relative mb-4 shadow-inner">
               <textarea
                 value={isTypingAnimation ? displayedText : reviewDraft}
                 onChange={(e) => {
@@ -399,7 +427,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
                   }
                 }}
                 rows={4}
-                className="w-full bg-transparent text-[#181715] text-sm md:text-base leading-relaxed resize-none outline-none font-normal"
+                className="w-full bg-transparent text-white text-sm md:text-base leading-relaxed resize-none outline-none font-normal placeholder:text-zinc-500"
                 placeholder="Write your review..."
               />
               {isTypingAnimation && (
@@ -415,8 +443,8 @@ export default function CustomerReviewFlow({ shop }: Props) {
                 disabled={isGenerating || isTypingAnimation}
                 className={`flex-1 py-2 rounded-full border text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
                   activeTone === "standard"
-                    ? "border-[#181715] bg-[#181715] text-white"
-                    : "border-[#E7DFD2] bg-[#FAF6EE] text-[#181715] hover:bg-[#F3EDE2]"
+                    ? "border-[#E36427] bg-[#E36427] text-white shadow-button"
+                    : "border-[#272736] bg-[#16161E] text-zinc-300 hover:bg-[#20202C]"
                 }`}
               >
                 <RotateCcw className="w-3 h-3" />
@@ -429,8 +457,8 @@ export default function CustomerReviewFlow({ shop }: Props) {
                 disabled={isGenerating || isTypingAnimation}
                 className={`flex-1 py-2 rounded-full border text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
                   activeTone === "shorter"
-                    ? "border-[#181715] bg-[#181715] text-white"
-                    : "border-[#E7DFD2] bg-[#FAF6EE] text-[#181715] hover:bg-[#F3EDE2]"
+                    ? "border-[#E36427] bg-[#E36427] text-white shadow-button"
+                    : "border-[#272736] bg-[#16161E] text-zinc-300 hover:bg-[#20202C]"
                 }`}
               >
                 <span>Shorter</span>
@@ -442,8 +470,8 @@ export default function CustomerReviewFlow({ shop }: Props) {
                 disabled={isGenerating || isTypingAnimation}
                 className={`flex-1 py-2 rounded-full border text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
                   activeTone === "hinglish"
-                    ? "border-[#181715] bg-[#181715] text-white"
-                    : "border-[#E7DFD2] bg-[#FAF6EE] text-[#181715] hover:bg-[#F3EDE2]"
+                    ? "border-[#E36427] bg-[#E36427] text-white shadow-button"
+                    : "border-[#272736] bg-[#16161E] text-zinc-300 hover:bg-[#20202C]"
                 }`}
               >
                 <span>Hinglish</span>
@@ -451,7 +479,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
             </div>
 
             {/* BASED ON RECAP (NO STARS) */}
-            <p className="text-xs text-stone-500 font-medium line-clamp-1 mb-2">
+            <p className="text-xs text-zinc-400 font-medium line-clamp-1 mb-2">
               Based on: {selectedTags.join(" · ")}
             </p>
           </div>
@@ -462,10 +490,10 @@ export default function CustomerReviewFlow({ shop }: Props) {
         {/* ========================================================= */}
         {step === 4 && (
           <div className="animate-fadeIn">
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#181715] tracking-tight mb-2">
+            <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-2">
               Last step: post on Google
             </h1>
-            <p className="text-sm text-stone-500 font-medium mb-6">
+            <p className="text-sm text-zinc-400 font-medium mb-6">
               We copy your review, then open {shop.name}&apos;s Google page.
             </p>
 
@@ -475,7 +503,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
                 <div className="w-6 h-6 rounded-full bg-[#E36427] text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                   1
                 </div>
-                <p className="text-sm text-stone-700 font-medium">
+                <p className="text-sm text-zinc-200 font-medium">
                   Tap below. Your review is copied automatically.
                 </p>
               </div>
@@ -484,7 +512,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
                 <div className="w-6 h-6 rounded-full bg-[#E36427] text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                   2
                 </div>
-                <p className="text-sm text-stone-700 font-medium">
+                <p className="text-sm text-zinc-200 font-medium">
                   On Google Maps, tap on Write a Review and paste it.
                 </p>
               </div>
@@ -493,22 +521,22 @@ export default function CustomerReviewFlow({ shop }: Props) {
                 <div className="w-6 h-6 rounded-full bg-[#E36427] text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
                   3
                 </div>
-                <p className="text-sm text-stone-700 font-medium">
+                <p className="text-sm text-zinc-200 font-medium">
                   Choose your stars and tap Post.
                 </p>
               </div>
             </div>
 
             {/* HELPFUL NOTE CARD */}
-            <div className="rounded-2xl bg-[#F4EADA] border border-[#EBDDC8] p-4 text-xs text-stone-700 leading-relaxed font-normal mb-6">
+            <div className="rounded-2xl bg-[#14141C] border border-[#272736] p-4 text-xs text-zinc-300 leading-relaxed font-normal mb-6">
               Opens directly in Google Maps where you are already signed in.
               Answer optional questions only if you prefer.
             </div>
 
             {/* COPY CONFIRMATION BADGE */}
             {copied && (
-              <div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 animate-bounce">
-                <Check className="w-4 h-4" />
+              <div className="mb-4 bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-semibold px-4 py-2.5 rounded-full flex items-center justify-center gap-2 animate-bounce">
+                <Check className="w-4 h-4 text-emerald-400" />
                 <span>Copied to clipboard! Opening Google Maps...</span>
               </div>
             )}
@@ -528,7 +556,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
             className={`w-full py-4 rounded-full font-bold text-sm md:text-base text-white transition-all shadow-button active:scale-[0.98] ${
               totalPicked > 0
                 ? "bg-[#E36427] hover:bg-[#D4561B]"
-                : "bg-stone-300 cursor-not-allowed"
+                : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
             }`}
           >
             {totalPicked > 0
@@ -559,20 +587,24 @@ export default function CustomerReviewFlow({ shop }: Props) {
           </button>
         )}
 
-        {/* BRANDED FOOTER */}
-        <div className="text-center mt-5 text-[11px] text-stone-400 font-medium flex flex-col items-center justify-center gap-2">
+        {/* PROMINENT DARK THEME BRANDED FOOTER */}
+        <div className="text-center mt-6 flex flex-col items-center justify-center gap-2.5">
           {step === 4 ? (
-            <p className="text-stone-500">You post it yourself from your Google account</p>
+            <p className="text-[11px] text-zinc-400">You post it yourself from your Google account</p>
           ) : (
-            <p>Demo shop, sample data</p>
+            <p className="text-[11px] text-zinc-500">Live preview · Powered by Reviewzy</p>
           )}
-          <div className="flex items-center justify-center gap-1.5 pt-2 opacity-80 hover:opacity-100 transition-opacity">
-            <span className="text-[10px] tracking-wide uppercase text-stone-400 font-semibold">Designed by</span>
+
+          {/* HIGH-CONTRAST "DESIGNED BY SG" MARK */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#15151D] border border-[#2B2B3C] shadow-md hover:border-[#3E3E54] transition-all">
+            <span className="text-[11px] font-bold tracking-wider uppercase text-zinc-300">
+              Designed by
+            </span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/sg-logo.png"
-              alt="SG"
-              className="h-5 w-auto object-contain inline-block"
+              alt="SG Logo"
+              className="h-6 w-auto object-contain filter drop-shadow-[0_1px_4px_rgba(234,179,8,0.35)]"
             />
           </div>
         </div>

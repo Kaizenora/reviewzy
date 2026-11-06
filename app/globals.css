@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #FAF7F2;
-  --foreground: #181715;
+  --background: #0B0B0E;
+  --foreground: #F4F4F6;
 }
 
 body {
@@ -15,7 +15,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbars for mobile feel */
+/* Custom scrollbars for dark theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -26,12 +26,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #E9DFD0;
+  background: #272732;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D8CBB6;
+  background: #383848;
 }
 
 @keyframes pulseGlow {

@@ -37,9 +37,9 @@ export default function ShopQrPage() {
 
   if (!shop) {
     return (
-      <div className="min-h-screen bg-[#FAF7F2] flex flex-col items-center justify-center p-6 text-center font-sans">
-        <h1 className="text-xl font-bold text-stone-800 mb-2">Shop Not Found</h1>
-        <p className="text-xs text-stone-500 mb-4">Slug: {slug}</p>
+      <div className="min-h-screen bg-[#0B0B0E] text-zinc-100 flex flex-col items-center justify-center p-6 text-center font-sans">
+        <h1 className="text-xl font-bold text-white mb-2">Shop Not Found</h1>
+        <p className="text-xs text-zinc-400 mb-4">Slug: {slug}</p>
         <Link href="/" className="text-sm text-[#E36427] font-semibold">
           Return to Home
         </Link>
@@ -48,19 +48,19 @@ export default function ShopQrPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] py-8 px-4 flex flex-col items-center justify-center font-sans text-stone-900">
+    <div className="min-h-screen bg-[#0B0B0E] py-8 px-4 flex flex-col items-center justify-center font-sans text-zinc-100">
       {/* Top nav */}
       <div className="w-full max-w-sm flex items-center justify-between mb-6 print:hidden">
         <Link
           href={`/r/${shop.slug}`}
-          className="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1.5"
+          className="text-xs font-semibold text-zinc-400 hover:text-white flex items-center gap-1.5 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           <span>Test Review Flow</span>
         </Link>
         <button
           onClick={() => window.print()}
-          className="bg-[#181715] text-white text-xs font-semibold px-4 py-2 rounded-full flex items-center gap-1.5 hover:bg-stone-800 shadow-sm"
+          className="bg-[#E36427] text-white text-xs font-semibold px-4 py-2 rounded-full flex items-center gap-1.5 hover:bg-[#D4561B] shadow-button transition-all"
         >
           <Printer className="w-3.5 h-3.5" />
           <span>Print Stand</span>
@@ -68,7 +68,7 @@ export default function ShopQrPage() {
       </div>
 
       {/* PRINT-READY TABLE CARD / COUNTER STAND */}
-      <div className="w-full max-w-sm bg-white rounded-3xl border-2 border-[#EADFCF] p-8 shadow-card flex flex-col items-center text-center relative overflow-hidden print:border-none print:shadow-none print:p-0">
+      <div className="w-full max-w-sm bg-white rounded-3xl border-2 border-stone-200 p-8 shadow-2xl flex flex-col items-center text-center relative overflow-hidden text-stone-900 print:border-none print:shadow-none print:p-0">
         {/* Decorative top ribbon */}
         <div
           className="h-2.5 w-full absolute top-0 left-0"
@@ -96,7 +96,7 @@ export default function ShopQrPage() {
         <p className="text-xs font-medium text-stone-500 mb-6">{shop.location}</p>
 
         {/* Call to action badge */}
-        <div className="bg-[#FAF7F2] border border-[#E7DFD2] rounded-full px-4 py-1.5 flex items-center gap-1.5 text-xs font-bold text-stone-800 mb-6">
+        <div className="bg-stone-50 border border-stone-200 rounded-full px-4 py-1.5 flex items-center gap-1.5 text-xs font-bold text-stone-800 mb-6">
           <Sparkles className="w-3.5 h-3.5 text-[#E36427]" />
           <span>Scan to review in 30 seconds</span>
         </div>
@@ -118,12 +118,13 @@ export default function ShopQrPage() {
           <p>3. Copy & paste onto Google with 1 click!</p>
         </div>
 
-        <div className="mt-8 pt-4 border-t border-stone-100 w-full flex items-center justify-between text-[10px] text-stone-400 font-medium">
-          <span>Powered by Reviewzy</span>
-          <div className="flex items-center gap-1.5 opacity-90">
-            <span className="text-[9px] uppercase tracking-wider text-stone-400 font-semibold">Designed by</span>
+        {/* FOOTER WITH PROMINENT DESIGNED BY SG */}
+        <div className="mt-8 pt-4 border-t border-stone-100 w-full flex items-center justify-between text-[10px] text-stone-500 font-medium">
+          <span className="font-semibold">Powered by Reviewzy</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] uppercase tracking-wider text-stone-700 font-bold">Designed by</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/sg-logo.png" alt="SG" className="h-4 w-auto object-contain inline-block" />
+            <img src="/sg-logo.png" alt="SG Logo" className="h-5 w-auto object-contain inline-block" />
           </div>
         </div>
       </div>
@@ -132,7 +133,7 @@ export default function ShopQrPage() {
         <Link
           href={`/r/${shop.slug}`}
           target="_blank"
-          className="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-1"
+          className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
         >
           <span>Open customer link: {currentUrl}</span>
           <ExternalLink className="w-3 h-3" />
