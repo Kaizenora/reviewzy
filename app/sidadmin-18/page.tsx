@@ -43,9 +43,6 @@ export default function PrivateAdminPage() {
   const [whatWentWellStr, setWhatWentWellStr] = useState(
     "Tasty food, Friendly staff, Quick service, Nice ambience, Clean place"
   );
-  const [couldBeBetterStr, setCouldBeBetterStr] = useState(
-    "Slow service, Too noisy, Overpriced"
-  );
   const [category, setCategory] = useState("Cafe & Restaurant");
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -74,7 +71,6 @@ export default function PrivateAdminPage() {
     setWhatWentWellStr(
       "Tasty food, Friendly staff, Quick service, Nice ambience, Clean place"
     );
-    setCouldBeBetterStr("Slow service, Too noisy, Overpriced");
     setCategory("Cafe & Restaurant");
     setIsModalOpen(true);
   };
@@ -90,7 +86,6 @@ export default function PrivateAdminPage() {
     setLogoLetter(shop.logoLetter || shop.name.charAt(0).toUpperCase());
     setLogoUrl(shop.logoUrl || "");
     setWhatWentWellStr(shop.whatWentWellTags?.join(", ") || "");
-    setCouldBeBetterStr(shop.couldBeBetterTags?.join(", ") || "");
     setCategory(shop.category || "General");
     setIsModalOpen(true);
   };
@@ -155,10 +150,7 @@ export default function PrivateAdminPage() {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
-      couldBeBetterTags: couldBeBetterStr
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
+      couldBeBetterTags: [],
       category,
       createdAt: new Date().toISOString(),
     };
@@ -512,27 +504,17 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                 {/* WHAT WENT WELL KEYWORDS */}
                 <div>
                   <label className="text-xs font-bold text-zinc-300 block mb-1">
-                    &ldquo;WHAT WENT WELL&rdquo; Keywords (comma-separated)
+                    Customer Review Keywords (comma-separated positive highlights)
                   </label>
                   <textarea
-                    rows={2}
+                    rows={3}
                     value={whatWentWellStr}
                     onChange={(e) => setWhatWentWellStr(e.target.value)}
-                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427] leading-relaxed"
                   />
-                </div>
-
-                {/* COULD BE BETTER KEYWORDS */}
-                <div>
-                  <label className="text-xs font-bold text-zinc-300 block mb-1">
-                    &ldquo;COULD BE BETTER&rdquo; Keywords (comma-separated)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={couldBeBetterStr}
-                    onChange={(e) => setCouldBeBetterStr(e.target.value)}
-                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
-                  />
+                  <p className="text-[10px] text-zinc-500 mt-1">
+                    Customers can tap these chips on their phone to shape their authentic 5-star Google review.
+                  </p>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-3 border-t border-[#242434]">

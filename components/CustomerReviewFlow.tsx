@@ -271,34 +271,6 @@ export default function CustomerReviewFlow({ shop }: Props) {
                     </button>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* COULD BE BETTER */}
-            <div className="mb-6">
-              <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase block mb-3">
-                COULD BE BETTER
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {shop.couldBeBetterTags.map((tag) => {
-                  const isSelected = selectedTags.includes(tag);
-                  return (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => toggleTag(tag)}
-                      className={`text-xs font-medium px-4 py-2 rounded-full transition-all flex items-center gap-1.5 ${
-                        isSelected
-                          ? "bg-[#E36427] text-white shadow-button font-bold border border-[#E36427]"
-                          : "bg-[#16161E] text-zinc-300 border-[1.5px] border-dashed border-[#343448] hover:bg-[#20202A]"
-                      }`}
-                    >
-                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
-                      <span>{tag}</span>
-                    </button>
-                  );
-                })}
-
                 {/* Custom tags added by user */}
                 {customTags.map((tag) => {
                   const isSelected = selectedTags.includes(tag);
