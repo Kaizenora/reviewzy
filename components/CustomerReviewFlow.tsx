@@ -183,12 +183,21 @@ export default function CustomerReviewFlow({ shop }: Props) {
 
         {/* SHOP IDENTITY HEADER */}
         <div className="flex items-center gap-3.5 mb-5">
-          <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-sm"
-            style={{ backgroundColor: shop.brandColor || "#E36427" }}
-          >
-            {shop.logoLetter || shop.name.charAt(0)}
-          </div>
+          {shop.logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={shop.logoUrl}
+              alt={shop.name}
+              className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-[#E7DFD2]"
+            />
+          ) : (
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-sm"
+              style={{ backgroundColor: shop.brandColor || "#E36427" }}
+            >
+              {shop.logoLetter || shop.name.charAt(0)}
+            </div>
+          )}
           <div>
             <h2 className="text-xl font-bold text-[#181715] leading-tight">
               {shop.name}

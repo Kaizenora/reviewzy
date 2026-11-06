@@ -1,8 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Shop } from "@/types/shop";
-import { getAllShops, saveShop, isSupabaseConfigured } from "@/lib/supabase";
+import {
+  getAllShops,
+  saveShop,
+  deleteShop,
+  isSupabaseConfigured,
+} from "@/lib/supabase";
 import { DEFAULT_SHOPS } from "@/lib/default-shops";
 import Link from "next/link";
 import {
@@ -14,12 +19,17 @@ import {
   ArrowRight,
   Copy,
   ExternalLink,
+  Edit2,
+  Trash2,
+  Upload,
+  X,
 } from "lucide-react";
 
 export default function AdminPage() {
   const [shops, setShops] = useState<Shop[]>(DEFAULT_SHOPS);
   const [loading, setLoading] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingShopSlug, setEditingShopSlug] = useState<string | null>(null);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   // Supabase URL connection state
@@ -28,13 +38,14 @@ export default function AdminPage() {
   const [urlSavedSuccess, setUrlSavedSuccess] = useState(false);
   const [copiedSchema, setCopiedSchema] = useState(false);
 
-  // New shop form state
+  // Shop form state
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [slug, setSlug] = useState("");
   const [googleReviewUrl, setGoogleReviewUrl] = useState("");
   const [brandColor, setBrandColor] = useState("#E36427");
   const [logoLetter, setLogoLetter] = useState("M");
+  const [logoUrl, setLogoUrl] = useState<string>("");
   const [whatWentWellStr, setWhatWentWellStr] = useState(
     "Tasty food, Friendly staff, Quick service, Nice ambience, Clean place"
   );
@@ -42,6 +53,8 @@ export default function AdminPage() {
     "Slow service, Too noisy, Overpriced"
   );
   const [category, setCategory] = useState("Cafe & Restaurant");
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     loadShops();
@@ -54,33 +67,90 @@ export default function AdminPage() {
     setLoading(false);
   }
 
+  // Open modal for new shop
+  const handleOpenCreateModal = () => {
+    setEditingShopSlug(null);
+    setName("");
+    setLocation("");
+    setSlug("");
+    setGoogleReviewUrl("");
+    setBrandColor("#E36427");
+    setLogoLetter("M");
+    setLogoUrl("");
+    setWhatWentWellStr(
+      "Tasty food, Friendly staff, Quick service, Nice ambience, Clean place"
+    );
+    setCouldBeBetterStr("Slow service, Too noisy, Overpriced");
+    setCategory("Cafe & Restaurant");
+    setIsModalOpen(true);
+  };
+
+  // Open modal for editing existing shop
+  const handleOpenEditModal = (shop: Shop) => {
+    setEditingShopSlug(shop.slug);
+    setName(shop.name);
+    setLocation(shop.location);
+    setSlug(shop.slug);
+    setGoogleReviewUrl(shop.googleReviewUrl);
+    setBrandColor(shop.brandColor || "#E36427");
+    setLogoLetter(shop.logoLetter || shop.name.charAt(0).toUpperCase());
+    setLogoUrl(shop.logoUrl || "");
+    setWhatWentWellStr(shop.whatWentWellTags?.join(", ") || "");
+    setCouldBeBetterStr(shop.couldBeBetterTags?.join(", ") || "");
+    setCategory(shop.category || "General");
+    setIsModalOpen(true);
+  };
+
   const handleNameChange = (val: string) => {
     setName(val);
-    const autoSlug = val
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
-    setSlug(autoSlug);
-    setLogoLetter(val.charAt(0).toUpperCase() || "M");
-    if (!googleReviewUrl) {
-      setGoogleReviewUrl(
-        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-          val + " " + location
-        )}`
-      );
+    if (!editingShopSlug) {
+      const autoSlug = val
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      setSlug(autoSlug);
+      setLogoLetter(val.charAt(0).toUpperCase() || "M");
+      if (!googleReviewUrl) {
+        setGoogleReviewUrl(
+          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            val + " " + location
+          )}`
+        );
+      }
     }
   };
 
-  const handleCreateShop = async (e: React.FormEvent) => {
+  // Handle image upload from computer
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Image must be smaller than 2MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveShop = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !slug) return;
 
-    const newShop: Shop = {
-      id: `shop_${Date.now()}`,
-      slug: slug.trim(),
+    const targetSlug = editingShopSlug || slug.trim();
+
+    const shopPayload: Shop = {
+      id: editingShopSlug
+        ? shops.find((s) => s.slug === editingShopSlug)?.id || `shop_${Date.now()}`
+        : `shop_${Date.now()}`,
+      slug: targetSlug,
       name: name.trim(),
       location: location.trim() || "Local Branch",
       logoLetter: logoLetter || name.charAt(0).toUpperCase(),
+      logoUrl: logoUrl.trim() || undefined,
       brandColor,
       googleReviewUrl:
         googleReviewUrl.trim() ||
@@ -99,15 +169,16 @@ export default function AdminPage() {
       createdAt: new Date().toISOString(),
     };
 
-    await saveShop(newShop);
+    await saveShop(shopPayload);
     await loadShops();
-    setIsCreating(false);
+    setIsModalOpen(false);
+  };
 
-    // Reset form
-    setName("");
-    setLocation("");
-    setSlug("");
-    setGoogleReviewUrl("");
+  const handleDeleteShop = async (shopSlug: string) => {
+    if (confirm(`Are you sure you want to delete this shop?`)) {
+      await deleteShop(shopSlug);
+      await loadShops();
+    }
   };
 
   const copyShopUrl = (shopSlug: string) => {
@@ -152,6 +223,7 @@ CREATE TABLE IF NOT EXISTS public.businesses (
   category TEXT DEFAULT 'General',
   brand_color TEXT DEFAULT '#E36427',
   logo_letter TEXT DEFAULT 'M',
+  logo_url TEXT,
   google_review_url TEXT NOT NULL,
   what_went_well_tags JSONB NOT NULL DEFAULT '["Tasty food", "Friendly staff", "Nice ambience"]'::jsonb,
   could_be_better_tags JSONB NOT NULL DEFAULT '["Slow service", "Too noisy", "Overpriced"]'::jsonb,
@@ -188,7 +260,7 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] py-8 px-4 font-sans text-stone-900">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-[#E7DFD2]">
           <div>
@@ -201,7 +273,7 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
               </span>
             </div>
             <p className="text-xs text-stone-500 font-medium">
-              Private merchant dashboard: manage shops, custom keywords, QR stands, and Google Maps links.
+              Merchant dashboard: manage shops, customize logos, keywords, QR stands, and Google Maps links.
             </p>
           </div>
 
@@ -216,7 +288,7 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
             </Link>
 
             <button
-              onClick={() => setIsCreating(true)}
+              onClick={handleOpenCreateModal}
               className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-4 py-2.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -252,7 +324,7 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                   />
                 </div>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Your publishable & secret keys are loaded in <code>.env.local</code>. Enter your Project URL (e.g. <code>https://xxxxxx.supabase.co</code>) below to complete cloud sync.
+                  Publishable & secret keys loaded. Paste your Project URL below (from Supabase Dashboard ➔ Project Settings ➔ API) to complete live cloud sync.
                 </p>
               </div>
             </div>
@@ -277,7 +349,10 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
           </div>
 
           {!isSupabaseConfigured && (
-            <form onSubmit={handleSaveSupabaseUrl} className="mt-4 pt-4 border-t border-stone-100 flex flex-col sm:flex-row gap-2">
+            <form
+              onSubmit={handleSaveSupabaseUrl}
+              className="mt-4 pt-4 border-t border-stone-100 flex flex-col sm:flex-row gap-2"
+            >
               <input
                 type="url"
                 required
@@ -304,167 +379,264 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
           )}
         </div>
 
-        {/* MODAL / FORM TO CREATE NEW SHOP */}
-        {isCreating && (
-          <div className="mb-8 p-6 bg-white rounded-3xl border-2 border-[#E36427]/30 shadow-card animate-fadeIn">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
-                <Store className="w-4 h-4 text-[#E36427]" />
-                <span>Create New Shop & QR Stand</span>
-              </h2>
-              <button
-                onClick={() => setIsCreating(false)}
-                className="text-stone-400 hover:text-stone-600 text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateShop} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">
-                    Shop / Business Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Blue Tokai Coffee"
-                    value={name}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">
-                    Location / Area
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Koramangala, Bengaluru"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
-                  />
-                </div>
+        {/* CREATE / EDIT SHOP MODAL */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white rounded-3xl border border-[#E7DFD2] p-6 max-w-xl w-full shadow-2xl my-8 animate-fadeIn max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-5 pb-3 border-b border-stone-100">
+                <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
+                  <Store className="w-5 h-5 text-[#E36427]" />
+                  <span>{editingShopSlug ? "Edit Business" : "Create New Business"}</span>
+                </h2>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="text-stone-400 hover:text-stone-700 p-1 rounded-full text-base"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-stone-700 block mb-1">
-                    Unique URL Slug *
+              <form onSubmit={handleSaveShop} className="space-y-4">
+                {/* LOGO CUSTOMIZATION SECTION */}
+                <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E7DFD2]">
+                  <label className="text-xs font-bold text-stone-800 block mb-2">
+                    Shop Logo (Image or Badge)
                   </label>
-                  <div className="flex items-center text-xs text-stone-500 border border-stone-200 rounded-xl px-3 py-2 bg-stone-50">
-                    <span>/r/</span>
+                  <div className="flex items-center gap-4">
+                    {/* LOGO PREVIEW */}
+                    <div className="relative group flex-shrink-0">
+                      {logoUrl ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={logoUrl}
+                          alt="Logo Preview"
+                          className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-sm"
+                        />
+                      ) : (
+                        <div
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl shadow-sm"
+                          style={{ backgroundColor: brandColor }}
+                        >
+                          {logoLetter || name.charAt(0) || "M"}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="bg-white border border-stone-200 hover:bg-stone-50 text-stone-800 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Upload Image Logo</span>
+                        </button>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                          className="hidden"
+                        />
+
+                        {logoUrl && (
+                          <button
+                            type="button"
+                            onClick={() => setLogoUrl("")}
+                            className="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1"
+                          >
+                            Remove Logo Image
+                          </button>
+                        )}
+                      </div>
+
+                      {/* URL input or Letter Badge settings */}
+                      <div className="flex items-center gap-2 text-xs">
+                        <input
+                          type="url"
+                          placeholder="Or paste image URL (https://...)"
+                          value={logoUrl}
+                          onChange={(e) => setLogoUrl(e.target.value)}
+                          className="flex-1 px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none text-xs bg-white"
+                        />
+                        <div className="flex items-center gap-1">
+                          <span className="text-[11px] font-medium text-stone-500">Badge:</span>
+                          <input
+                            type="text"
+                            maxLength={2}
+                            placeholder="M"
+                            value={logoLetter}
+                            onChange={(e) => setLogoLetter(e.target.value.toUpperCase())}
+                            className="w-8 py-1.5 text-center font-bold rounded-lg border border-stone-200 outline-none text-xs bg-white"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* NAME & LOCATION */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                      Business Name *
+                    </label>
                     <input
                       type="text"
                       required
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value)}
-                      className="w-full bg-transparent outline-none font-semibold text-stone-800"
+                      placeholder="e.g. Cafe Mokka"
+                      value={name}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                      Location / Area *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Kothrud, Pune"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
                     />
                   </div>
                 </div>
 
+                {/* SLUG, CATEGORY, BRAND COLOR */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                      URL Slug *
+                    </label>
+                    <div className="flex items-center text-xs text-stone-500 border border-stone-200 rounded-xl px-2.5 py-2 bg-stone-50">
+                      <span>/r/</span>
+                      <input
+                        type="text"
+                        required
+                        disabled={Boolean(editingShopSlug)}
+                        value={slug}
+                        onChange={(e) => setSlug(e.target.value)}
+                        className="w-full bg-transparent outline-none font-semibold text-stone-800 disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-stone-700 block mb-1">
+                      Brand Color
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={brandColor}
+                        onChange={(e) => setBrandColor(e.target.value)}
+                        className="w-8 h-8 rounded-lg border-0 cursor-pointer p-0 bg-transparent"
+                      />
+                      <input
+                        type="text"
+                        value={brandColor}
+                        onChange={(e) => setBrandColor(e.target.value)}
+                        className="w-full text-xs px-2 py-1.5 rounded-xl border border-stone-200 outline-none uppercase font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* GOOGLE MAPS DESTINATION */}
                 <div>
                   <label className="text-xs font-bold text-stone-700 block mb-1">
-                    Category
+                    Google Maps Review Destination URL *
                   </label>
                   <input
-                    type="text"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    type="url"
+                    required
+                    placeholder="https://www.google.com/maps/search/?api=1&query=..."
+                    value={googleReviewUrl}
+                    onChange={(e) => setGoogleReviewUrl(e.target.value)}
+                    className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                  />
+                  <p className="text-[10px] text-stone-400 mt-1">
+                    Opens directly in the Google Maps app where users are already signed in.
+                  </p>
+                </div>
+
+                {/* WHAT WENT WELL KEYWORDS */}
+                <div>
+                  <label className="text-xs font-bold text-stone-700 block mb-1">
+                    &ldquo;WHAT WENT WELL&rdquo; Keywords (comma-separated)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={whatWentWellStr}
+                    onChange={(e) => setWhatWentWellStr(e.target.value)}
                     className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
                   />
                 </div>
 
+                {/* COULD BE BETTER KEYWORDS */}
                 <div>
                   <label className="text-xs font-bold text-stone-700 block mb-1">
-                    Brand Color
+                    &ldquo;COULD BE BETTER&rdquo; Keywords (comma-separated)
                   </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={brandColor}
-                      onChange={(e) => setBrandColor(e.target.value)}
-                      className="w-9 h-9 rounded-lg border-0 cursor-pointer p-0 bg-transparent"
-                    />
-                    <input
-                      type="text"
-                      value={brandColor}
-                      onChange={(e) => setBrandColor(e.target.value)}
-                      className="w-full text-xs px-2 py-2 rounded-xl border border-stone-200 outline-none uppercase font-mono"
-                    />
-                  </div>
+                  <textarea
+                    rows={2}
+                    value={couldBeBetterStr}
+                    onChange={(e) => setCouldBeBetterStr(e.target.value)}
+                    className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
+                  />
                 </div>
-              </div>
 
-              <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">
-                  Google Maps Destination URL *
-                </label>
-                <input
-                  type="url"
-                  required
-                  placeholder="https://www.google.com/maps/search/?api=1&query=..."
-                  value={googleReviewUrl}
-                  onChange={(e) => setGoogleReviewUrl(e.target.value)}
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
-                />
-                <p className="text-[10px] text-stone-400 mt-1">
-                  Opens Google Maps app natively on mobile phones where the user is already signed in!
-                </p>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">
-                  &ldquo;WHAT WENT WELL&rdquo; Keywords (comma-separated)
-                </label>
-                <textarea
-                  rows={2}
-                  value={whatWentWellStr}
-                  onChange={(e) => setWhatWentWellStr(e.target.value)}
-                  className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-stone-700 block mb-1">
-                  &ldquo;COULD BE BETTER&rdquo; Keywords (comma-separated)
-                </label>
-                <textarea
-                  rows={2}
-                  value={couldBeBetterStr}
-                  onChange={(e) => setCouldBeBetterStr(e.target.value)}
-                  className="w-full text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427]"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCreating(false)}
-                  className="px-4 py-2 rounded-full border border-stone-200 text-xs font-semibold hover:bg-stone-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-6 py-2 rounded-full shadow-sm"
-                >
-                  Save & Generate Stand
-                </button>
-              </div>
-            </form>
+                <div className="flex justify-end gap-2 pt-3 border-t border-stone-100">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 rounded-full border border-stone-200 text-xs font-semibold hover:bg-stone-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-6 py-2 rounded-full shadow-sm"
+                  >
+                    {editingShopSlug ? "Update Business" : "Save & Generate Stand"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
 
         {/* SHOPS LIST */}
         <div className="space-y-4">
-          <h2 className="text-sm font-bold text-stone-600 uppercase tracking-wider mb-2">
-            Active Shops ({shops.length})
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-stone-600 uppercase tracking-wider">
+              Active Businesses ({shops.length})
+            </h2>
+            <button
+              onClick={handleOpenCreateModal}
+              className="text-xs font-bold text-[#E36427] hover:underline flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Another Shop</span>
+            </button>
+          </div>
 
           {loading ? (
             <div className="text-xs text-stone-500 py-10 text-center">
@@ -475,18 +647,28 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
               {shops.map((s) => (
                 <div
                   key={s.slug}
-                  className="bg-white rounded-2xl border border-[#E7DFD2] p-5 shadow-card hover:shadow-md transition-shadow flex flex-col justify-between"
+                  className="bg-white rounded-2xl border border-[#E7DFD2] p-5 shadow-card hover:shadow-md transition-shadow flex flex-col justify-between relative group"
                 >
                   <div>
                     {/* TOP INFO */}
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-sm"
-                          style={{ backgroundColor: s.brandColor || "#E36427" }}
-                        >
-                          {s.logoLetter || s.name.charAt(0)}
-                        </div>
+                        {/* LOGO DISPLAY */}
+                        {s.logoUrl ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={s.logoUrl}
+                            alt={s.name}
+                            className="w-11 h-11 rounded-xl object-cover shadow-sm border border-stone-200 flex-shrink-0"
+                          />
+                        ) : (
+                          <div
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm flex-shrink-0"
+                            style={{ backgroundColor: s.brandColor || "#E36427" }}
+                          >
+                            {s.logoLetter || s.name.charAt(0)}
+                          </div>
+                        )}
                         <div>
                           <h3 className="font-bold text-stone-900 text-base leading-tight">
                             {s.name}
@@ -495,9 +677,25 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                         </div>
                       </div>
 
-                      <span className="text-[10px] bg-stone-100 font-semibold text-stone-600 px-2.5 py-0.5 rounded-full">
-                        {s.category || "Shop"}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] bg-stone-100 font-semibold text-stone-600 px-2.5 py-0.5 rounded-full">
+                          {s.category || "Shop"}
+                        </span>
+                        <button
+                          onClick={() => handleOpenEditModal(s)}
+                          className="p-1.5 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition-colors"
+                          title="Edit Business & Logo"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteShop(s.slug)}
+                          className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          title="Delete Business"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* KEYWORDS PREVIEW */}
@@ -544,6 +742,14 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                     </button>
 
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleOpenEditModal(s)}
+                        className="bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 px-2.5 py-1.5 rounded-full flex items-center gap-1 transition-colors"
+                      >
+                        <Edit2 className="w-3 h-3 text-stone-500" />
+                        <span>Edit</span>
+                      </button>
+
                       <Link
                         href={`/r/${s.slug}/qr`}
                         className="bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors"

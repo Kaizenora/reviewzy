@@ -76,12 +76,21 @@ export default function ShopQrPage() {
         />
 
         {/* Shop logo */}
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl shadow-sm mb-3 mt-1"
-          style={{ backgroundColor: shop.brandColor || "#E36427" }}
-        >
-          {shop.logoLetter || shop.name.charAt(0)}
-        </div>
+        {shop.logoUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={shop.logoUrl}
+            alt={shop.name}
+            className="w-16 h-16 rounded-2xl object-cover shadow-sm mb-3 mt-1 border border-stone-200"
+          />
+        ) : (
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl shadow-sm mb-3 mt-1"
+            style={{ backgroundColor: shop.brandColor || "#E36427" }}
+          >
+            {shop.logoLetter || shop.name.charAt(0)}
+          </div>
+        )}
 
         <h1 className="text-2xl font-black text-stone-900 mb-1">{shop.name}</h1>
         <p className="text-xs font-medium text-stone-500 mb-6">{shop.location}</p>

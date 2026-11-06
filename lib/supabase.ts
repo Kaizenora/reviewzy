@@ -54,6 +54,18 @@ function saveLocalCustomShop(shop: Shop) {
   }
 }
 
+function deleteLocalCustomShop(slug: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = getLocalCustomShops().filter(
+      (s) => s.slug.toLowerCase() !== slug.toLowerCase()
+    );
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(existing));
+  } catch (e) {
+    console.error("Failed to delete local shop:", e);
+  }
+}
+
 /**
  * Fetch all available businesses / shops
  */
@@ -73,7 +85,10 @@ export async function getAllShops(): Promise<Shop[]> {
           slug: String(item.slug || ""),
           name: String(item.name || ""),
           location: String(item.location || ""),
-          logoLetter: String(item.logo_letter || String(item.name || "M").charAt(0).toUpperCase()),
+          logoLetter: String(
+            item.logo_letter || String(item.name || "M").charAt(0).toUpperCase()
+          ),
+          logoUrl: item.logo_url ? String(item.logo_url) : undefined,
           brandColor: String(item.brand_color || "#E36427"),
           googleReviewUrl: String(item.google_review_url || ""),
           whatWentWellTags: (item.what_went_well_tags as string[]) || [],
@@ -116,7 +131,10 @@ export async function getShopBySlug(slug: string): Promise<Shop | null> {
           slug: String(item.slug || ""),
           name: String(item.name || ""),
           location: String(item.location || ""),
-          logoLetter: String(item.logo_letter || String(item.name || "M").charAt(0).toUpperCase()),
+          logoLetter: String(
+            item.logo_letter || String(item.name || "M").charAt(0).toUpperCase()
+          ),
+          logoUrl: item.logo_url ? String(item.logo_url) : undefined,
           brandColor: String(item.brand_color || "#E36427"),
           googleReviewUrl: String(item.google_review_url || ""),
           whatWentWellTags: (item.what_went_well_tags as string[]) || [],
@@ -152,6 +170,7 @@ export async function saveShop(shop: Shop): Promise<Shop> {
         name: shop.name,
         location: shop.location,
         logo_letter: shop.logoLetter,
+        logo_url: shop.logoUrl || null,
         brand_color: shop.brandColor,
         google_review_url: shop.googleReviewUrl,
         what_went_well_tags: shop.whatWentWellTags,
@@ -181,6 +200,26 @@ export async function saveShop(shop: Shop): Promise<Shop> {
   // Fallback to local storage
   saveLocalCustomShop(shop);
   return shop;
+}
+
+/**
+ * Delete a shop
+ */
+export async function deleteShop(slug: string): Promise<boolean> {
+  const sb = await getSupabase();
+  if (sb) {
+    try {
+      await sb
+        .from("businesses")
+        .delete()
+        .eq("slug", slug.toLowerCase());
+    } catch (err) {
+      console.error("Failed to delete from Supabase:", err);
+    }
+  }
+
+  deleteLocalCustomShop(slug);
+  return true;
 }
 
 /**

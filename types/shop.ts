@@ -4,6 +4,7 @@ export interface Shop {
   name: string;
   location: string;
   logoLetter: string;
+  logoUrl?: string; // Base64 or external URL for custom logo image
   brandColor: string;
   googleReviewUrl: string;
   whatWentWellTags: string[];
@@ -18,8 +19,7 @@ export type ReviewTone = "standard" | "shorter" | "hinglish";
 
 export interface ReviewDraftRequest {
   shopName: string;
-  shopLocation: string;
-  rating: number;
+  shopLocation?: string;
   selectedTags: string[];
   customTags?: string[];
   tone?: ReviewTone;
@@ -28,6 +28,5 @@ export interface ReviewDraftRequest {
 
 export interface ReviewDraftResponse {
   review: string;
-  tokensUsed?: number;
-  source: "openai" | "synthesizer";
+  source: "synthesizer";
 }
