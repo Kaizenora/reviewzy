@@ -244,21 +244,21 @@ export default function CustomerReviewFlow({ shop }: Props) {
             </div>
           )}
 
-          <h1 className="text-2xl font-black text-white tracking-tight mb-1">
+          <h1 className="text-3xl font-black text-white tracking-tight mb-1">
             {shop.name}
           </h1>
 
           {/* 5 GOLD STARS */}
-          <div className="flex items-center gap-1.5 mb-1.5">
+          <div className="flex items-center gap-1.5 mb-2">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className="w-5 h-5 fill-[#FBBF24] text-[#FBBF24]"
+                className="w-6 h-6 fill-[#FBBF24] text-[#FBBF24]"
               />
             ))}
           </div>
 
-          <p className="text-xs text-zinc-400 font-medium">
+          <p className="text-sm text-zinc-400 font-medium">
             Tap highlights to craft your review
           </p>
         </div>
@@ -268,10 +268,10 @@ export default function CustomerReviewFlow({ shop }: Props) {
         {/* ========================================================= */}
         <div className="mb-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-400">
+            <span className="text-xs font-extrabold uppercase tracking-wider text-zinc-400">
               What went well?
             </span>
-            <span className="text-[11px] text-zinc-500 font-medium">
+            <span className="text-xs text-zinc-500 font-medium">
               {selectedTags.length} selected
             </span>
           </div>
@@ -284,7 +284,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all duration-200 active:scale-95 ${
+                  className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 active:scale-95 ${
                     isSelected
                       ? "bg-[#E36427] text-white border border-[#FF8A50] shadow-md shadow-[#E36427]/30"
                       : "bg-[#161622] text-zinc-300 border border-[#2B2B3E] hover:border-zinc-600"
@@ -410,7 +410,7 @@ export default function CustomerReviewFlow({ shop }: Props) {
               onFocus={handleTextareaFocus}
               rows={4}
               placeholder="Tap highlights above or write your review directly here..."
-              className="w-full bg-transparent text-sm text-zinc-100 placeholder-zinc-500 leading-relaxed outline-none resize-none font-medium selection:bg-[#E36427]/40 cursor-text"
+              className="w-full bg-transparent text-base text-zinc-100 placeholder-zinc-500 leading-relaxed outline-none resize-none font-medium selection:bg-[#E36427]/40 cursor-text"
             />
 
             {/* CURSOR BLINK WHILE TYPEWRITING */}
