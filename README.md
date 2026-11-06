@@ -9,15 +9,7 @@ Customers scan a table QR code, tap what they liked, and get a natural review dr
 ## 📱 App Preview
 
 <p align="center">
-  <video src="https://raw.githubusercontent.com/Kaizenora/reviewzy/main/public/screenshots/preview.mp4"
-         controls
-         autoplay
-         loop
-         muted
-         playsinline
-         width="300"
-         style="border-radius:16px">
-  </video>
+  <img src="public/screenshots/preview.gif" alt="Reviewzy app demo" width="300" />
 </p>
 
 **Live demo:** [reviewzy.vercel.app](https://reviewzy.vercel.app)
