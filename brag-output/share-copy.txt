@@ -1,0 +1,5 @@
+Turn 30 seconds at your checkout counter into a flood of authentic 5-star Google reviews. 
+
+Meet Reviewzy — instant acrylic QR stands, offline AI review auto-drafting, zero login walls, and direct deep-linking into native Google Maps. 
+
+Live at https://reviewzy.vercel.app 🚀

@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Reviewzy Launch</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --ground: #070709;
+        --card-bg: #14141C;
+        --accent: #E36427;
+        --accent-glow: rgba(227, 100, 39, 0.4);
+        --gold: #FBBF24;
+        --ink: #FFFFFF;
+        --muted: #CBD5E1;
+        --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html, body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--ground);
+        font-family: var(--font-main);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 35%, #181824 0%, #08080C 75%, #040406 100%);
+      }
+
+      .bg-grid {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 60px 60px;
+        opacity: 0.6;
+      }
+
+      .scene-layer {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Scene 1: Stand */
+      .stand-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .hook-badge {
+        background: rgba(227, 100, 39, 0.2);
+        border: 2px solid #E36427;
+        color: #FFA575;
+        padding: 10px 28px;
+        border-radius: 999px;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 24px;
+        box-shadow: 0 0 35px var(--accent-glow);
+      }
+      .hook-title {
+        font-size: 58px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        text-align: center;
+        margin-bottom: 40px;
+        color: #FFFFFF;
+      }
+      .hook-title span {
+        color: var(--accent);
+      }
+      .acrylic-stand {
+        background: #111118;
+        border: 2px solid rgba(255, 255, 255, 0.16);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(227, 100, 39, 0.2);
+        border-radius: 28px;
+        padding: 44px 56px;
+        display: flex;
+        align-items: center;
+        gap: 50px;
+      }
+      .qr-frame {
+        background: #FFFFFF;
+        padding: 16px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      }
+      .qr-frame svg {
+        display: block;
+      }
+      .stand-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .google-review-badge {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: #FFFFFF;
+        padding: 12px 24px;
+        border-radius: 14px;
+        margin-bottom: 18px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      }
+      .google-review-text {
+        font-size: 30px;
+        font-weight: 800;
+        color: #202124;
+      }
+      .star-row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .star-row svg {
+        width: 36px;
+        height: 36px;
+        fill: var(--gold);
+      }
+      .stand-biz-name {
+        font-size: 36px;
+        font-weight: 900;
+        color: #FFFFFF;
+        margin-bottom: 8px;
+      }
+      .stand-instruction {
+        font-size: 28px;
+        font-weight: 600;
+        color: #CBD5E1;
+        margin-bottom: 22px;
+      }
+      .sg-badge {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 8px 18px;
+        border-radius: 20px;
+        font-size: 28px;
+        color: #F6E05E;
+        font-weight: 700;
+      }
+      .sg-badge img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+      }
+
+      /* Scene 2 & 3: Interactive Phone */
+      .phone-container {
+        position: relative;
+        width: 520px;
+        height: 880px;
+        background: #0E0E14;
+        border: 4px solid #2F2F44;
+        border-radius: 50px;
+        box-shadow: 0 25px 70px rgba(0,0,0,0.9), 0 0 60px rgba(227, 100, 39, 0.25);
+        padding: 34px 30px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .phone-notch {
+        align-self: center;
+        width: 140px;
+        height: 22px;
+        background: #1C1C28;
+        border-radius: 20px;
+        margin-bottom: 24px;
+      }
+      .phone-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .phone-title {
+        font-size: 32px;
+        font-weight: 900;
+        color: #FFFFFF;
+        margin-bottom: 6px;
+      }
+      .phone-stars {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 8px;
+      }
+      .phone-stars svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--gold);
+      }
+      .phone-subtitle {
+        font-size: 16px;
+        font-weight: 600;
+        color: #E2E8F0;
+      }
+
+      .section-label {
+        font-size: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #E2E8F0;
+        margin-bottom: 12px;
+      }
+
+      .chips-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .chip {
+        padding: 10px 20px;
+        background: #1A1A28;
+        border: 1.5px solid #383850;
+        border-radius: 999px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #F8FAFC;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .chip.selected {
+        background: #E36427;
+        border-color: #FFA575;
+        color: #FFFFFF;
+        box-shadow: 0 4px 18px var(--accent-glow);
+      }
+
+      /* Draft Card */
+      .draft-card {
+        background: #161622;
+        border: 1.5px solid #383850;
+        border-radius: 20px;
+        padding: 22px;
+        margin-bottom: 22px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+      .draft-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .ai-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #FFC09F;
+        background: #3B1B0F;
+        padding: 6px 12px;
+        border-radius: 12px;
+      }
+      .tone-pills {
+        display: flex;
+        gap: 8px;
+      }
+      .tone-pill {
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 8px;
+        background: #242436;
+        color: #F1F5F9;
+      }
+      .tone-pill.active {
+        background: #4A4A68;
+        color: #FFFFFF;
+      }
+      .draft-text {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.55;
+        color: #FFFFFF;
+        min-height: 80px;
+      }
+
+      /* CTA Button */
+      .cta-button {
+        width: 100%;
+        background: #E36427;
+        border: 2px solid #FFA575;
+        border-radius: 18px;
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        font-size: 18px;
+        font-weight: 800;
+        color: #FFFFFF;
+        box-shadow: 0 8px 30px var(--accent-glow);
+        cursor: pointer;
+      }
+
+      /* Toast */
+      .toast {
+        position: absolute;
+        bottom: 110px;
+        left: 50%;
+        transform: translateX(-50%) translateY(30px);
+        background: #16A34A;
+        border: 2px solid #86EFAC;
+        color: #FFFFFF;
+        font-size: 16px;
+        font-weight: 800;
+        padding: 14px 28px;
+        border-radius: 999px;
+        box-shadow: 0 10px 30px rgba(22, 163, 74, 0.5);
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+      }
+
+      /* Side Callouts */
+      .side-feature {
+        position: absolute;
+        width: 420px;
+        background: rgba(20, 20, 28, 0.92);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.7);
+      }
+      .side-feature h3 {
+        font-size: 32px;
+        font-weight: 900;
+        color: #FFFFFF;
+        margin-bottom: 12px;
+      }
+      .side-feature p {
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 1.45;
+        color: #CBD5E1;
+      }
+      .feature-left {
+        left: 100px;
+        top: 340px;
+      }
+      .feature-right {
+        right: 100px;
+        top: 340px;
+      }
+
+      /* Scene 4: Outro */
+      .outro-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .brand-title {
+        font-size: 100px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        margin-bottom: 16px;
+        color: #FFFFFF;
+      }
+      .brand-title span.zy {
+        color: var(--accent);
+      }
+      .tagline {
+        font-size: 38px;
+        font-weight: 700;
+        color: #F1F5F9;
+        margin-bottom: 36px;
+      }
+      .url-pill {
+        background: rgba(227, 100, 39, 0.2);
+        border: 2px solid #E36427;
+        color: #FFA575;
+        font-size: 32px;
+        font-weight: 800;
+        padding: 16px 48px;
+        border-radius: 999px;
+        margin-bottom: 48px;
+        box-shadow: 0 0 45px var(--accent-glow);
+        letter-spacing: 0.02em;
+      }
+      .features-row {
+        display: flex;
+        gap: 40px;
+        margin-bottom: 50px;
+      }
+      .feature-mini {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 28px;
+        font-weight: 700;
+        color: #F8FAFC;
+      }
+      .feature-mini svg {
+        fill: var(--accent);
+      }
+      .footer-credit {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 28px;
+        font-weight: 600;
+        color: #CBD5E1;
+      }
+      .footer-credit img {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+      }
+      .footer-credit strong {
+        color: #F6E05E;
+        font-weight: 800;
+      }
+
+      /* Confetti container */
+      .confetti-box {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .confetti-piece {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="18.5"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="bg-grid"></div>
+
+      <!-- AUDIO TRACKS -->
+      <audio
+        id="bg-music"
+        data-start="0"
+        data-duration="18.5"
+        data-track-index="1"
+        data-volume="0.32"
+        src="assets/music/happy-beats-business-moves-vol-1-by-ende-dot-app.mp3"
+      ></audio>
+      <audio
+        id="sfx-reveal"
+        data-start="0.4"
+        data-duration="0.19"
+        data-track-index="2"
+        data-volume="0.65"
+        src="assets/sfx/impact/impactSoft_medium_001.ogg"
+      ></audio>
+      <audio
+        id="sfx-chip1"
+        data-start="4.5"
+        data-duration="0.10"
+        data-track-index="3"
+        data-volume="0.5"
+        src="assets/sfx/interface/click_001.ogg"
+      ></audio>
+      <audio
+        id="sfx-chip2"
+        data-start="5.5"
+        data-duration="0.10"
+        data-track-index="4"
+        data-volume="0.5"
+        src="assets/sfx/interface/click_001.ogg"
+      ></audio>
+      <audio
+        id="sfx-chip3"
+        data-start="6.5"
+        data-duration="0.10"
+        data-track-index="5"
+        data-volume="0.5"
+        src="assets/sfx/interface/click_001.ogg"
+      ></audio>
+      <audio
+        id="sfx-copy"
+        data-start="12.4"
+        data-duration="0.26"
+        data-track-index="6"
+        data-volume="0.75"
+        src="assets/sfx/casino/chips-collide-1.ogg"
+      ></audio>
+      <audio
+        id="sfx-bell"
+        data-start="15.2"
+        data-duration="1.48"
+        data-track-index="7"
+        data-volume="0.8"
+        src="assets/sfx/impact/impactBell_heavy_000.ogg"
+      ></audio>
+
+      <!-- SCENE 1: THE COUNTER STAND REVEAL (Settled at t=0s for instant poster frame) -->
+      <div id="scene-1" class="scene-layer">
+        <div class="stand-wrapper">
+          <div id="hook-pill" class="hook-badge">Stop Begging For Reviews</div>
+          <h1 id="hook-headline" class="hook-title">Turn 30 Seconds at Checkout into <span>5-Star Google Reviews</span></h1>
+          
+          <div id="acrylic-stand" class="acrylic-stand">
+            <!-- QR Frame -->
+            <div class="qr-frame">
+              <svg width="220" height="220" viewBox="0 0 200 200" fill="none">
+                <rect width="200" height="200" fill="white"/>
+                <rect x="15" y="15" width="50" height="50" rx="8" fill="#0B0B0E"/>
+                <rect x="25" y="25" width="30" height="30" rx="4" fill="white"/>
+                <rect x="33" y="33" width="14" height="14" fill="#0B0B0E"/>
+                <rect x="135" y="15" width="50" height="50" rx="8" fill="#0B0B0E"/>
+                <rect x="145" y="25" width="30" height="30" rx="4" fill="white"/>
+                <rect x="153" y="33" width="14" height="14" fill="#0B0B0E"/>
+                <rect x="15" y="135" width="50" height="50" rx="8" fill="#0B0B0E"/>
+                <rect x="25" y="145" width="30" height="30" rx="4" fill="white"/>
+                <rect x="33" y="153" width="14" height="14" fill="#0B0B0E"/>
+                <rect x="80" y="20" width="14" height="14" fill="#0B0B0E"/>
+                <rect x="105" y="20" width="14" height="14" fill="#0B0B0E"/>
+                <rect x="80" y="45" width="14" height="14" fill="#0B0B0E"/>
+                <rect x="105" y="45" width="20" height="20" fill="#0B0B0E"/>
+                <rect x="20" y="80" width="14" height="25" fill="#0B0B0E"/>
+                <rect x="45" y="80" width="14" height="14" fill="#0B0B0E"/>
+                <rect x="70" y="80" width="25" height="14" fill="#0B0B0E"/>
+                <rect x="105" y="80" width="14" height="25" fill="#0B0B0E"/>
+                <rect x="135" y="80" width="20" height="14" fill="#0B0B0E"/>
+                <rect x="165" y="80" width="15" height="15" fill="#0B0B0E"/>
+                <rect x="80" y="115" width="20" height="14" fill="#0B0B0E"/>
+                <rect x="110" y="115" width="15" height="20" fill="#0B0B0E"/>
+                <rect x="140" y="115" width="20" height="14" fill="#0B0B0E"/>
+                <rect x="80" y="145" width="14" height="35" fill="#0B0B0E"/>
+                <rect x="105" y="155" width="25" height="14" fill="#0B0B0E"/>
+                <rect x="140" y="145" width="40" height="15" fill="#0B0B0E"/>
+                <rect x="155" y="170" width="25" height="15" fill="#0B0B0E"/>
+              </svg>
+            </div>
+
+            <div class="stand-info">
+              <!-- Official Google Review Badge -->
+              <div class="google-review-badge">
+                <svg width="34" height="34" viewBox="0 0 48 48">
+                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <span class="google-review-text">Review us on Google</span>
+              </div>
+
+              <!-- 5 Stars -->
+              <div class="star-row">
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              </div>
+
+              <div class="stand-biz-name">Cafe Mokka</div>
+              <div class="stand-instruction">Point camera to leave a quick 5-star review</div>
+
+              <div class="sg-badge">
+                <img src="assets/images/sg-logo.png" alt="SG Logo" />
+                <span>Designed by SG</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE 2 & 3: INTERACTIVE PHONE DEMO -->
+      <div id="scene-2" class="scene-layer" style="opacity: 0;">
+        <div id="callout-left" class="side-feature feature-left">
+          <h3>⚡ Zero Friction</h3>
+          <p>No app download. No login wall. Customers tap positive highlights in 30 seconds.</p>
+        </div>
+
+        <div id="phone-body" class="phone-container">
+          <div class="phone-notch"></div>
+          <div class="phone-header">
+            <h2 class="phone-title">Cafe Mokka</h2>
+            <div class="phone-stars">
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            </div>
+            <p class="phone-subtitle" data-layout-ignore="true">Tap highlights to craft your review</p>
+          </div>
+
+          <div class="section-label" data-layout-ignore="true">What went well?</div>
+          <div class="chips-grid">
+            <div id="chip-1" class="chip" data-layout-ignore="true"><span>Tasty food</span></div>
+            <div id="chip-2" class="chip" data-layout-ignore="true"><span>Friendly staff</span></div>
+            <div id="chip-3" class="chip" data-layout-ignore="true"><span>Nice ambience</span></div>
+            <div id="chip-4" class="chip" data-layout-ignore="true"><span>Fast service</span></div>
+            <div id="chip-5" class="chip" data-layout-ignore="true"><span>Great coffee</span></div>
+          </div>
+
+          <div class="draft-card">
+            <div class="draft-header">
+              <span class="ai-badge" data-layout-ignore="true">✦ AI Generated Review</span>
+              <div class="tone-pills">
+                <span class="tone-pill active" data-layout-ignore="true">Natural</span>
+                <span class="tone-pill" data-layout-ignore="true">Short</span>
+                <span class="tone-pill" data-layout-ignore="true">Hinglish</span>
+              </div>
+            </div>
+            <div id="typewriter-text" class="draft-text" data-layout-ignore="true"></div>
+          </div>
+
+          <button id="cta-btn" class="cta-button" data-layout-ignore="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>Copy review & open Google</span>
+          </button>
+
+          <div id="copied-toast" class="toast" data-layout-ignore="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Review copied! Opening Google Maps...</span>
+          </div>
+        </div>
+
+        <div id="callout-right" class="side-feature feature-right">
+          <h3>📍 Native Google Maps</h3>
+          <p>Deep-links directly into the Google Maps app. Customer is already signed in — paste and done!</p>
+        </div>
+
+        <div id="confetti" class="confetti-box"></div>
+      </div>
+
+      <!-- SCENE 4: OUTRO & CALL TO ACTION -->
+      <div id="scene-3" class="scene-layer" style="opacity: 0;">
+        <div class="outro-wrapper">
+          <div id="outro-title" class="brand-title">
+            Review<span class="zy">zy</span>
+          </div>
+          <div id="outro-tagline" class="tagline">More 5-Star Reviews. Zero Friction.</div>
+          
+          <div id="outro-pill" class="url-pill">reviewzy.vercel.app</div>
+
+          <div id="outro-features" class="features-row">
+            <div class="feature-mini">
+              <svg width="28" height="28" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>Instant AI Drafting</span>
+            </div>
+            <div class="feature-mini">
+              <svg width="28" height="28" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>Custom Acrylic QR Stands</span>
+            </div>
+            <div class="feature-mini">
+              <svg width="28" height="28" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              <span>Multi-Tenant Merchant Suite</span>
+            </div>
+          </div>
+
+          <div id="outro-footer" class="footer-credit">
+            <img src="assets/images/sg-logo.png" alt="SG Logo" />
+            <span>Built & Designed by <strong>SG</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Deterministic confetti particles (no Math.random)
+      const confettiBox = document.getElementById("confetti");
+      const colors = ["#E36427", "#FBBF24", "#38BDF8", "#4ADE80", "#F43F5E", "#A855F7"];
+      const particleCount = 36;
+      for (let i = 0; i < particleCount; i++) {
+        const p = document.createElement("div");
+        p.className = "confetti-piece";
+        p.style.backgroundColor = colors[i % colors.length];
+        const offset = ((i * 37) % 300) - 150;
+        p.style.left = (960 + offset) + "px";
+        p.style.top = "740px";
+        confettiBox.appendChild(p);
+      }
+
+      const reviewSentence = "Had a wonderful experience at Cafe Mokka! The tasty food and friendly staff truly stood out. Loved the cozy ambience as well. Highly recommended! ⭐⭐⭐⭐⭐";
+      const typewriterEl = document.getElementById("typewriter-text");
+
+      // Master Timeline
+      const tl = gsap.timeline({ paused: true });
+
+      // Frame 0 settled state
+      tl.set("#scene-1", { opacity: 1 }, 0);
+      tl.set("#hook-pill", { opacity: 1, y: 0, scale: 1 }, 0);
+      tl.set("#hook-headline", { opacity: 1, y: 0 }, 0);
+      tl.set("#acrylic-stand", { opacity: 1, scale: 1, rotationX: 0, y: 0 }, 0);
+
+      // Subtle float animation for Stand in Scene 1
+      tl.to("#acrylic-stand", { y: -10, duration: 1.6, ease: "sine.inOut", yoyo: true, repeat: 1 }, 0.5);
+
+      // Scene 1 Exit (3.5s - 3.8s)
+      tl.to("#scene-1", { opacity: 0, scale: 0.94, duration: 0.3, ease: "power2.in" }, 3.5);
+
+      // Scene 2 & 3 Entrance (3.8s)
+      tl.to("#scene-2", { opacity: 1, duration: 0.2 }, 3.8);
+      tl.fromTo("#phone-body", 
+        { scale: 0.88, y: 50 }, 
+        { scale: 1, y: 0, duration: 0.5, ease: "power4.out" }, 
+        3.85
+      );
+      tl.fromTo("#callout-left", 
+        { opacity: 0, x: -30 }, 
+        { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 
+        4.1
+      );
+
+      // Interactive Chip Taps (beat-snapped: 4.5s, 5.5s, 6.5s)
+      tl.to("#chip-1", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 4.5);
+      tl.to("#chip-1", { scale: 1.0, duration: 0.12 }, 4.62);
+
+      tl.to("#chip-2", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 5.5);
+      tl.to("#chip-2", { scale: 1.0, duration: 0.12 }, 5.62);
+
+      tl.to("#chip-3", { className: "chip selected", scale: 1.08, duration: 0.12, ease: "power2.out" }, 6.5);
+      tl.to("#chip-3", { scale: 1.0, duration: 0.12 }, 6.62);
+
+      tl.fromTo("#callout-right", 
+        { opacity: 0, x: 30 }, 
+        { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 
+        6.8
+      );
+
+      // Deterministic Typewriter Animation (7.5s - 11.5s)
+      const totalChars = reviewSentence.length;
+      for (let i = 1; i <= totalChars; i++) {
+        const timeProgress = 7.5 + (i / totalChars) * 3.8;
+        const textSlice = reviewSentence.slice(0, i);
+        tl.call(() => {
+          typewriterEl.textContent = textSlice;
+        }, null, timeProgress);
+      }
+
+      // CTA Button Click at 12.4s (beat-locked)
+      tl.to("#cta-btn", { scale: 0.94, duration: 0.1, ease: "power1.in" }, 12.35);
+      tl.to("#cta-btn", { scale: 1.0, duration: 0.15, ease: "power1.out" }, 12.45);
+
+      // Confetti burst (deterministic math)
+      const pieces = document.querySelectorAll(".confetti-piece");
+      pieces.forEach((piece, idx) => {
+        const angle = (idx / particleCount) * Math.PI * 2;
+        const dist = 140 + ((idx * 19) % 180);
+        const targetX = Math.cos(angle) * dist;
+        const targetY = Math.sin(angle) * dist;
+        
+        tl.fromTo(piece, 
+          { opacity: 1, scale: 0, x: 0, y: 0, rotation: 0 }, 
+          { opacity: 0, scale: 1.2, x: targetX, y: targetY, rotation: 360, duration: 1.4, ease: "power3.out" }, 
+          12.4
+        );
+      });
+
+      // Toast appearance
+      tl.fromTo("#copied-toast", 
+        { opacity: 0, y: 30, scale: 0.9 }, 
+        { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "back.out(1.7)" }, 
+        12.6
+      );
+
+      // Scene 2 Exit (14.6s - 14.9s)
+      tl.to("#scene-2", { opacity: 0, scale: 0.92, duration: 0.3, ease: "power2.in" }, 14.6);
+
+      // Scene 4 Outro Entrance (15.0s, beat 15.2s)
+      tl.to("#scene-3", { opacity: 1, duration: 0.2 }, 15.0);
+      tl.fromTo("#outro-title", 
+        { opacity: 0, scale: 0.8, y: -25 }, 
+        { opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power4.out" }, 
+        15.1
+      );
+      tl.fromTo("#outro-tagline", 
+        { opacity: 0, y: 20 }, 
+        { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 
+        15.4
+      );
+      tl.fromTo("#outro-pill", 
+        { opacity: 0, scale: 0.9, y: 20 }, 
+        { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out(1.5)" }, 
+        15.7
+      );
+      tl.fromTo("#outro-features", 
+        { opacity: 0, y: 25 }, 
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 
+        16.0
+      );
+      tl.fromTo("#outro-footer", 
+        { opacity: 0, y: 20 }, 
+        { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 
+        16.3
+      );
+
+      // Register timeline for Hyperframes
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
