@@ -17,9 +17,10 @@ import {
 
 interface Props {
   shop: Shop;
+  isDemo?: boolean;
 }
 
-export default function CustomerReviewFlow({ shop }: Props) {
+export default function CustomerReviewFlow({ shop, isDemo = false }: Props) {
   // Pre-select first 2 tags or fallback tags
   const initialTags =
     shop.whatWentWellTags && shop.whatWentWellTags.length > 0
@@ -188,28 +189,31 @@ export default function CustomerReviewFlow({ shop }: Props) {
       // Confetti fallback
     }
 
-    // Log review activity
-    logReviewGenerated({
-      shopSlug: shop.slug,
-      rating: 5,
-      tags: selectedTags,
-      reviewText: textToCopy,
-      tone: activeTone,
-      actionStatus: "copied_and_opened_google",
-    });
+    // In demo mode — don't redirect, just show copied toast
+    if (!isDemo) {
+      // Log review activity
+      logReviewGenerated({
+        shopSlug: shop.slug,
+        rating: 5,
+        tags: selectedTags,
+        reviewText: textToCopy,
+        tone: activeTone,
+        actionStatus: "copied_and_opened_google",
+      });
 
-    // Deep-link to Google Maps
-    const targetUrl =
-      shop.googleReviewUrl &&
-      !shop.googleReviewUrl.includes("search.google.com/local/writereview")
-        ? shop.googleReviewUrl
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            `${shop.name} ${shop.location}`
-          )}`;
+      // Deep-link to Google Maps
+      const targetUrl =
+        shop.googleReviewUrl &&
+        !shop.googleReviewUrl.includes("search.google.com/local/writereview")
+          ? shop.googleReviewUrl
+          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              `${shop.name} ${shop.location}`
+            )}`;
 
-    setTimeout(() => {
-      window.open(targetUrl, "_blank", "noopener,noreferrer");
-    }, 700);
+      setTimeout(() => {
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
+      }, 700);
+    }
 
     setTimeout(() => {
       setCopied(false);
@@ -223,6 +227,18 @@ export default function CustomerReviewFlow({ shop }: Props) {
 
   return (
     <div className="min-h-screen bg-[#0B0B0E] text-zinc-100 flex flex-col justify-between max-w-md mx-auto relative px-5 py-6 font-sans">
+
+      {/* DEMO BANNER */}
+      {isDemo && (
+        <div className="flex items-center justify-center gap-2 bg-[#1A1A10] border border-[#E36427]/30 rounded-xl px-4 py-2 mb-4">
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#E36427] bg-[#E36427]/15 px-2 py-0.5 rounded-full">
+            Demo
+          </span>
+          <span className="text-[11px] text-zinc-400 font-medium">
+            This is a preview — real businesses open Google Maps on tap
+          </span>
+        </div>
+      )}
       {/* ========================================================= */}
       {/* HEADER: SHOP NAME + 5 GOLD STARS + SUBTITLE */}
       {/* ========================================================= */}
@@ -442,7 +458,11 @@ export default function CustomerReviewFlow({ shop }: Props) {
         {copied && (
           <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-[#16A34A] border border-[#86EFAC]/40 text-white px-5 py-2.5 rounded-full font-bold text-xs shadow-2xl flex items-center gap-2 animate-bounce z-50 whitespace-nowrap">
             <Check className="w-4 h-4 stroke-[3]" />
-            <span>Review copied! Opening Google Maps...</span>
+            <span>
+              {isDemo
+                ? "Review copied! (Demo — no redirect)"
+                : "Review copied! Opening Google Maps..."}
+            </span>
           </div>
         )}
 
@@ -454,8 +474,8 @@ export default function CustomerReviewFlow({ shop }: Props) {
           className="w-full py-4 px-5 rounded-2xl bg-[#E36427] hover:bg-[#D4551A] text-white font-black text-base shadow-xl shadow-[#E36427]/30 flex items-center justify-center gap-2.5 active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none mb-4 cursor-pointer"
         >
           <Copy className="w-5 h-5" />
-          <span>Copy review & open Google</span>
-          <ExternalLink className="w-4 h-4 opacity-75 ml-0.5" />
+          <span>{isDemo ? "Copy review (Demo)" : "Copy review & open Google"}</span>
+          {!isDemo && <ExternalLink className="w-4 h-4 opacity-75 ml-0.5" />}
         </button>
 
         {/* BRANDED FOOTER: DESIGNED BY SG */}
