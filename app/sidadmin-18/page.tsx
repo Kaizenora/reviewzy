@@ -706,6 +706,16 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
             </div>
           )}
         </div>
+
+        {/* BRANDED FOOTER */}
+        <div className="mt-12 pt-6 border-t border-[#E7DFD2] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-stone-500 font-medium">
+          <p>© {new Date().getFullYear()} Reviewzy Multi-Tenant Platform</p>
+          <div className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity">
+            <span className="text-[11px] uppercase tracking-wider text-stone-400 font-semibold">Designed by</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/sg-logo.png" alt="SG" className="h-5 w-auto object-contain inline-block" />
+          </div>
+        </div>
       </div>
     </div>
   );

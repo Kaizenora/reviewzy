@@ -120,7 +120,11 @@ export default function ShopQrPage() {
 
         <div className="mt-8 pt-4 border-t border-stone-100 w-full flex items-center justify-between text-[10px] text-stone-400 font-medium">
           <span>Powered by Reviewzy</span>
-          <span>Google Reviews</span>
+          <div className="flex items-center gap-1.5 opacity-90">
+            <span className="text-[9px] uppercase tracking-wider text-stone-400 font-semibold">Designed by</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/sg-logo.png" alt="SG" className="h-4 w-auto object-contain inline-block" />
+          </div>
         </div>
       </div>
 

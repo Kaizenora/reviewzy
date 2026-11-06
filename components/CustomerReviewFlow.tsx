@@ -559,16 +559,22 @@ export default function CustomerReviewFlow({ shop }: Props) {
           </button>
         )}
 
-        {/* FOOTER */}
-        <div className="text-center mt-3 text-[11px] text-stone-400 font-medium">
+        {/* BRANDED FOOTER */}
+        <div className="text-center mt-5 text-[11px] text-stone-400 font-medium flex flex-col items-center justify-center gap-2">
           {step === 4 ? (
-            <div>
-              <p>You post it yourself from your Google account</p>
-              <p className="mt-0.5">Demo shop, sample data</p>
-            </div>
+            <p className="text-stone-500">You post it yourself from your Google account</p>
           ) : (
             <p>Demo shop, sample data</p>
           )}
+          <div className="flex items-center justify-center gap-1.5 pt-2 opacity-80 hover:opacity-100 transition-opacity">
+            <span className="text-[10px] tracking-wide uppercase text-stone-400 font-semibold">Designed by</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/sg-logo.png"
+              alt="SG"
+              className="h-5 w-auto object-contain inline-block"
+            />
+          </div>
         </div>
       </div>
     </div>
