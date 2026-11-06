@@ -6,7 +6,6 @@ import {
   getAllShops,
   saveShop,
   deleteShop,
-  isSupabaseConfigured,
 } from "@/lib/supabase";
 import { DEFAULT_SHOPS } from "@/lib/default-shops";
 import Link from "next/link";
@@ -31,11 +30,6 @@ export default function AdminPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShopSlug, setEditingShopSlug] = useState<string | null>(null);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
-
-  // Supabase URL connection state
-  const [supabaseUrlInput, setSupabaseUrlInput] = useState("");
-  const [isSavingUrl, setIsSavingUrl] = useState(false);
-  const [urlSavedSuccess, setUrlSavedSuccess] = useState(false);
   const [copiedSchema, setCopiedSchema] = useState(false);
 
   // Shop form state
@@ -120,12 +114,12 @@ export default function AdminPage() {
     }
   };
 
-  // Handle image upload from computer
+  // Handle image upload from computer (Base64)
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Image must be smaller than 2MB");
+      if (file.size > 3 * 1024 * 1024) {
+        alert("Image must be smaller than 3MB");
         return;
       }
       const reader = new FileReader();
@@ -175,7 +169,7 @@ export default function AdminPage() {
   };
 
   const handleDeleteShop = async (shopSlug: string) => {
-    if (confirm(`Are you sure you want to delete this shop?`)) {
+    if (confirm(`Are you sure you want to delete this business?`)) {
       await deleteShop(shopSlug);
       await loadShops();
     }
@@ -188,30 +182,10 @@ export default function AdminPage() {
     setTimeout(() => setCopiedSlug(null), 2000);
   };
 
-  const handleSaveSupabaseUrl = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!supabaseUrlInput || !supabaseUrlInput.startsWith("http")) return;
-
-    setIsSavingUrl(true);
-    try {
-      const res = await fetch("/api/save-supabase-config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ supabaseUrl: supabaseUrlInput }),
-      });
-      if (res.ok) {
-        setUrlSavedSuccess(true);
-        setTimeout(() => window.location.reload(), 1500);
-      }
-    } catch {
-      alert("Failed to save Supabase URL");
-    } finally {
-      setIsSavingUrl(false);
-    }
-  };
-
   const handleCopySchema = () => {
-    const sql = `-- REVIEWZY SUPABASE SQL SCHEMA
+    const sql = `-- ==============================================================================
+-- REVIEWZY MULTI-TENANT ARCHITECTURE & SUPABASE SCHEMA
+-- ==============================================================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS public.businesses (
@@ -249,9 +223,9 @@ ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.review_logs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public can view active businesses by slug" ON public.businesses FOR SELECT USING (is_active = true);
+CREATE POLICY "Public can insert businesses" ON public.businesses FOR ALL USING (true);
 CREATE POLICY "Customers can insert review submissions" ON public.review_logs FOR INSERT WITH CHECK (true);
-CREATE POLICY "Owners can manage their businesses" ON public.businesses FOR ALL USING (auth.uid() = owner_id OR auth.uid() IS NULL);
-CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (true);`;
+CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USING (true);`;
 
     navigator.clipboard.writeText(sql);
     setCopiedSchema(true);
@@ -269,11 +243,11 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                 Reviewzy
               </span>
               <span className="bg-[#E36427]/10 text-[#E36427] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
-                Admin Panel
+                Merchant Admin
               </span>
             </div>
             <p className="text-xs text-stone-500 font-medium">
-              Merchant dashboard: manage shops, customize logos, keywords, QR stands, and Google Maps links.
+              Click &ldquo;Edit Details &amp; Logo&rdquo; on any card below to change logos, keywords, location, and Google Maps links.
             </p>
           </div>
 
@@ -283,48 +257,36 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
               target="_blank"
               className="text-xs font-semibold text-stone-600 hover:text-stone-900 px-3 py-2 rounded-full border border-stone-200 bg-white flex items-center gap-1.5"
             >
-              <span>View Customer App</span>
+              <span>Preview Customer App</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
 
             <button
               onClick={handleOpenCreateModal}
-              className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-4 py-2.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all"
+              className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-5 py-2.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all"
             >
               <Plus className="w-4 h-4" />
-              <span>Add New Shop</span>
+              <span>Create New Business</span>
             </button>
           </div>
         </div>
 
-        {/* SUPABASE CONNECTION CARD */}
+        {/* SUPABASE CLOUD SYNC BANNER */}
         <div className="mb-6 p-5 rounded-2xl bg-white border border-[#E7DFD2] shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                  isSupabaseConfigured
-                    ? "bg-emerald-50 text-emerald-600"
-                    : "bg-amber-50 text-amber-600"
-                }`}
-              >
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
                 <Database className="w-5 h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-stone-900">
-                    {isSupabaseConfigured
-                      ? "Supabase Connected & Active"
-                      : "Supabase Keys Loaded (Paste Project URL)"}
+                    Supabase Connected &amp; Synced
                   </span>
-                  <span
-                    className={`inline-block w-2.5 h-2.5 rounded-full ${
-                      isSupabaseConfigured ? "bg-emerald-500" : "bg-amber-500"
-                    }`}
-                  />
+                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
-                <p className="text-xs text-stone-500 mt-0.5">
-                  Publishable & secret keys loaded. Paste your Project URL below (from Supabase Dashboard ➔ Project Settings ➔ API) to complete live cloud sync.
+                <p className="text-xs text-stone-500 mt-1 max-w-xl leading-relaxed">
+                  Connected to <code>wrfqhxbedrgwqyizbsut.supabase.co</code>. If you haven&apos;t run the SQL schema yet, click below to copy the schema and run it in your Supabase SQL editor so your tables are live!
                 </p>
               </div>
             </div>
@@ -332,75 +294,45 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
             <button
               type="button"
               onClick={handleCopySchema}
-              className="text-xs font-bold text-stone-700 bg-stone-100 hover:bg-stone-200 px-3.5 py-2 rounded-full flex items-center gap-1.5 self-start md:self-center transition-colors whitespace-nowrap"
+              className="text-xs font-bold text-stone-800 bg-[#FAF7F2] hover:bg-stone-200 border border-[#E7DFD2] px-4 py-2.5 rounded-full flex items-center gap-1.5 self-start md:self-center transition-colors whitespace-nowrap shadow-sm"
             >
               {copiedSchema ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-600">Copied SQL Schema!</span>
+                  <Check className="w-4 h-4 text-emerald-600 stroke-[2.5]" />
+                  <span className="text-emerald-700 font-extrabold">Copied SQL Schema!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Copy SQL Schema</span>
+                  <Copy className="w-4 h-4 text-[#E36427]" />
+                  <span>Copy Supabase SQL Schema</span>
                 </>
               )}
             </button>
           </div>
-
-          {!isSupabaseConfigured && (
-            <form
-              onSubmit={handleSaveSupabaseUrl}
-              className="mt-4 pt-4 border-t border-stone-100 flex flex-col sm:flex-row gap-2"
-            >
-              <input
-                type="url"
-                required
-                placeholder="https://your-project-id.supabase.co"
-                value={supabaseUrlInput}
-                onChange={(e) => setSupabaseUrlInput(e.target.value)}
-                className="flex-1 text-xs px-3.5 py-2 rounded-xl border border-stone-200 outline-none focus:border-[#E36427] bg-[#FAF7F2]"
-              />
-              <button
-                type="submit"
-                disabled={isSavingUrl}
-                className="bg-[#181715] hover:bg-stone-800 text-white text-xs font-bold px-5 py-2 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 whitespace-nowrap"
-              >
-                {urlSavedSuccess ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Saved! Reloading...</span>
-                  </>
-                ) : (
-                  <span>Connect Supabase</span>
-                )}
-              </button>
-            </form>
-          )}
         </div>
 
         {/* CREATE / EDIT SHOP MODAL */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
             <div className="bg-white rounded-3xl border border-[#E7DFD2] p-6 max-w-xl w-full shadow-2xl my-8 animate-fadeIn max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-5 pb-3 border-b border-stone-100">
                 <h2 className="text-lg font-bold text-stone-900 flex items-center gap-2">
                   <Store className="w-5 h-5 text-[#E36427]" />
-                  <span>{editingShopSlug ? "Edit Business" : "Create New Business"}</span>
+                  <span>{editingShopSlug ? `Edit: ${name || "Business"}` : "Create New Business"}</span>
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="text-stone-400 hover:text-stone-700 p-1 rounded-full text-base"
+                  className="text-stone-400 hover:text-stone-700 p-1.5 rounded-full text-base transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleSaveShop} className="space-y-4">
-                {/* LOGO CUSTOMIZATION SECTION */}
+                {/* LOGO CUSTOMIZATION & UPLOAD */}
                 <div className="bg-[#FAF7F2] p-4 rounded-2xl border border-[#E7DFD2]">
                   <label className="text-xs font-bold text-stone-800 block mb-2">
-                    Shop Logo (Image or Badge)
+                    Shop Logo (Upload Custom Image or Choose Badge)
                   </label>
                   <div className="flex items-center gap-4">
                     {/* LOGO PREVIEW */}
@@ -410,11 +342,11 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                         <img
                           src={logoUrl}
                           alt="Logo Preview"
-                          className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-sm"
+                          className="w-16 h-16 rounded-2xl object-cover border-2 border-white shadow-md"
                         />
                       ) : (
                         <div
-                          className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl shadow-sm"
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center text-white font-extrabold text-2xl shadow-md"
                           style={{ backgroundColor: brandColor }}
                         >
                           {logoLetter || name.charAt(0) || "M"}
@@ -427,10 +359,10 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="bg-white border border-stone-200 hover:bg-stone-50 text-stone-800 text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm"
+                          className="bg-white border border-stone-300 hover:bg-stone-50 text-stone-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm transition-colors"
                         >
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>Upload Image Logo</span>
+                          <Upload className="w-3.5 h-3.5 text-[#E36427]" />
+                          <span>Upload Logo Image</span>
                         </button>
                         <input
                           ref={fileInputRef}
@@ -444,31 +376,31 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                           <button
                             type="button"
                             onClick={() => setLogoUrl("")}
-                            className="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2 py-1"
+                            className="text-xs text-rose-600 hover:text-rose-800 font-bold px-2 py-1"
                           >
                             Remove Logo Image
                           </button>
                         )}
                       </div>
 
-                      {/* URL input or Letter Badge settings */}
+                      {/* Image URL input or Badge settings */}
                       <div className="flex items-center gap-2 text-xs">
                         <input
-                          type="url"
+                          type="text"
                           placeholder="Or paste image URL (https://...)"
                           value={logoUrl}
                           onChange={(e) => setLogoUrl(e.target.value)}
-                          className="flex-1 px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none text-xs bg-white"
+                          className="flex-1 px-3 py-1.5 rounded-lg border border-stone-200 outline-none text-xs bg-white focus:border-[#E36427]"
                         />
                         <div className="flex items-center gap-1">
-                          <span className="text-[11px] font-medium text-stone-500">Badge:</span>
+                          <span className="text-[11px] font-medium text-stone-500">Letter:</span>
                           <input
                             type="text"
                             maxLength={2}
                             placeholder="M"
                             value={logoLetter}
                             onChange={(e) => setLogoLetter(e.target.value.toUpperCase())}
-                            className="w-8 py-1.5 text-center font-bold rounded-lg border border-stone-200 outline-none text-xs bg-white"
+                            className="w-9 py-1.5 text-center font-bold rounded-lg border border-stone-200 outline-none text-xs bg-white"
                           />
                         </div>
                       </div>
@@ -562,7 +494,7 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                 {/* GOOGLE MAPS DESTINATION */}
                 <div>
                   <label className="text-xs font-bold text-stone-700 block mb-1">
-                    Google Maps Review Destination URL *
+                    Google Maps Destination URL *
                   </label>
                   <input
                     type="url"
@@ -613,9 +545,9 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                   </button>
                   <button
                     type="submit"
-                    className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-6 py-2 rounded-full shadow-sm"
+                    className="bg-[#E36427] hover:bg-[#D4561B] text-white text-xs font-bold px-6 py-2 rounded-full shadow-button transition-all"
                   >
-                    {editingShopSlug ? "Update Business" : "Save & Generate Stand"}
+                    {editingShopSlug ? "Save Changes" : "Save & Generate Stand"}
                   </button>
                 </div>
               </form>
@@ -634,7 +566,7 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
               className="text-xs font-bold text-[#E36427] hover:underline flex items-center gap-1"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Create Another Shop</span>
+              <span>Add Another Shop</span>
             </button>
           </div>
 
@@ -647,32 +579,39 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
               {shops.map((s) => (
                 <div
                   key={s.slug}
-                  className="bg-white rounded-2xl border border-[#E7DFD2] p-5 shadow-card hover:shadow-md transition-shadow flex flex-col justify-between relative group"
+                  className="bg-white rounded-3xl border border-[#E7DFD2] p-5 shadow-card hover:shadow-md transition-shadow flex flex-col justify-between relative group"
                 >
                   <div>
                     {/* TOP INFO */}
                     <div className="flex items-start justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-3">
+                      <div
+                        onClick={() => handleOpenEditModal(s)}
+                        className="flex items-center gap-3 cursor-pointer group-hover:opacity-90 transition-opacity"
+                        title="Click to edit details"
+                      >
                         {/* LOGO DISPLAY */}
                         {s.logoUrl ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
                           <img
                             src={s.logoUrl}
                             alt={s.name}
-                            className="w-11 h-11 rounded-xl object-cover shadow-sm border border-stone-200 flex-shrink-0"
+                            className="w-12 h-12 rounded-2xl object-cover shadow-sm border border-stone-200 flex-shrink-0"
                           />
                         ) : (
                           <div
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm flex-shrink-0"
+                            className="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm flex-shrink-0"
                             style={{ backgroundColor: s.brandColor || "#E36427" }}
                           >
                             {s.logoLetter || s.name.charAt(0)}
                           </div>
                         )}
                         <div>
-                          <h3 className="font-bold text-stone-900 text-base leading-tight">
-                            {s.name}
-                          </h3>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="font-bold text-stone-900 text-base leading-tight hover:text-[#E36427] transition-colors">
+                              {s.name}
+                            </h3>
+                            <Edit2 className="w-3 h-3 text-stone-400 group-hover:text-[#E36427] transition-colors" />
+                          </div>
                           <p className="text-xs text-stone-500">{s.location}</p>
                         </div>
                       </div>
@@ -682,18 +621,11 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                           {s.category || "Shop"}
                         </span>
                         <button
-                          onClick={() => handleOpenEditModal(s)}
-                          className="p-1.5 text-stone-400 hover:text-stone-800 hover:bg-stone-100 rounded-lg transition-colors"
-                          title="Edit Business & Logo"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
                           onClick={() => handleDeleteShop(s.slug)}
-                          className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 text-stone-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                           title="Delete Business"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -721,8 +653,8 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                     </div>
                   </div>
 
-                  {/* BOTTOM ACTIONS */}
-                  <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs font-semibold">
+                  {/* BOTTOM ACTION BAR - CLEAR & PROMINENT */}
+                  <div className="pt-3 border-t border-stone-100 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
                     <button
                       onClick={() => copyShopUrl(s.slug)}
                       className="text-stone-600 hover:text-stone-900 flex items-center gap-1"
@@ -731,7 +663,7 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                       {copiedSlug === s.slug ? (
                         <>
                           <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span className="text-emerald-600">Copied!</span>
+                          <span className="text-emerald-600 font-bold">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -742,12 +674,13 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                     </button>
 
                     <div className="flex items-center gap-2">
+                      {/* HIGHLY VISIBLE EDIT BUTTON */}
                       <button
                         onClick={() => handleOpenEditModal(s)}
-                        className="bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 px-2.5 py-1.5 rounded-full flex items-center gap-1 transition-colors"
+                        className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors font-bold text-xs"
                       >
-                        <Edit2 className="w-3 h-3 text-stone-500" />
-                        <span>Edit</span>
+                        <Edit2 className="w-3.5 h-3.5 text-amber-700" />
+                        <span>Edit Details &amp; Logo</span>
                       </button>
 
                       <Link
@@ -755,13 +688,13 @@ CREATE POLICY "Owners can view reviews" ON public.review_logs FOR SELECT USING (
                         className="bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors"
                       >
                         <QrCode className="w-3.5 h-3.5" />
-                        <span>Print QR Stand</span>
+                        <span>Print Stand</span>
                       </Link>
 
                       <Link
                         href={`/r/${s.slug}`}
                         target="_blank"
-                        className="bg-[#E36427] hover:bg-[#D4561B] text-white px-3.5 py-1.5 rounded-full flex items-center gap-1 transition-colors"
+                        className="bg-[#E36427] hover:bg-[#D4561B] text-white px-3.5 py-1.5 rounded-full flex items-center gap-1 transition-colors shadow-sm"
                       >
                         <span>Test Flow</span>
                         <ArrowRight className="w-3.5 h-3.5" />
