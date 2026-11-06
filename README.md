@@ -29,8 +29,8 @@ Reviewzy helps local businesses, cafes, salons, clinics, and restaurants collect
   - **Tone Customization**: `↺ Rewrite`, `Shorter` (punchy), and `Hinglish` (desi urban blend).
 - **QR Code Stand & Table Cards**:
   - Built-in printable table tents & counter cards (`/r/[slug]/qr`) with high-contrast SVG QR codes.
-- **Admin Dashboard**:
-  - Route `/admin` to add new shops, edit keywords, manage redirection links, and view live previews.
+- **Admin / Merchant Dashboard**:
+  - Route `/dashboard` (or `/admin`) to add new shops, edit logos, customize keywords, manage redirection links, and view live previews.
 
 ---
 
@@ -91,7 +91,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - `/`: Interactive Customer Flow Demo (with Cafe Mokka, Urban Salon, Apex Dental, and Sharma Sweets presets).
 - `/r/cafe-mokka`: Standalone customer scan & review page for Cafe Mokka.
 - `/r/[slug]/qr`: Print-ready QR table card and counter stand.
-- `/admin`: Shop management dashboard to add/edit businesses and customize keywords.
+- `/dashboard`: Merchant management dashboard to add/edit businesses, upload logos, and customize keywords.
 
 ---
 
