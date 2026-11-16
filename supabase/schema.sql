@@ -188,3 +188,59 @@ INSERT INTO public.businesses (
   'Sweets & Street Food'
 )
 ON CONFLICT (slug) DO NOTHING;
+
+-- ==============================================================================
+-- 3. REPORT ACCREDITATION & GOOGLE BUSINESS PROFILE INTEGRATION MIGRATION
+-- ==============================================================================
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS report_token TEXT;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'Asia/Kolkata';
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_connected BOOLEAN DEFAULT false;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_account_id TEXT;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_location_id TEXT;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_access_token TEXT;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_refresh_token TEXT;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_token_expiry TIMESTAMP WITH TIME ZONE;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_last_synced_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_last_error TEXT;
+ALTER TABLE public.businesses ADD COLUMN IF NOT EXISTS google_sync_status TEXT DEFAULT 'idle';
+
+-- 4. GOOGLE REVIEWS TABLE (Actual posted reviews synced from Google Business Profile)
+CREATE TABLE IF NOT EXISTS public.google_reviews (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
+  business_slug TEXT NOT NULL,
+  google_review_id TEXT NOT NULL,
+  stars INTEGER NOT NULL CHECK (stars >= 1 AND stars <= 5),
+  text TEXT DEFAULT '',
+  author_name TEXT NOT NULL,
+  author_photo_url TEXT,
+  posted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  CONSTRAINT uq_google_reviews_slug_review UNIQUE (business_slug, google_review_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_google_reviews_business_slug ON public.google_reviews (business_slug);
+CREATE INDEX IF NOT EXISTS idx_google_reviews_posted_at ON public.google_reviews (posted_at);
+
+-- Enable RLS on google_reviews
+ALTER TABLE public.google_reviews ENABLE ROW LEVEL SECURITY;
+
+-- Allow read access
+DROP POLICY IF EXISTS "Public can view google reviews for active businesses" ON public.google_reviews;
+CREATE POLICY "Public can view google reviews for active businesses"
+  ON public.google_reviews
+  FOR SELECT
+  USING (true);
+
+-- Allow service/admin/authorized inserts and updates
+DROP POLICY IF EXISTS "Allow insert google reviews" ON public.google_reviews;
+CREATE POLICY "Allow insert google reviews"
+  ON public.google_reviews
+  FOR INSERT
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update google reviews" ON public.google_reviews;
+CREATE POLICY "Allow update google reviews"
+  ON public.google_reviews
+  FOR UPDATE
+  USING (true);

@@ -11,6 +11,31 @@ export interface Shop {
   couldBeBetterTags: string[];
   category?: string;
   createdAt?: string;
+  // Report & Google Business Connection
+  reportToken?: string;
+  timezone?: string; // e.g. "Asia/Kolkata"
+  googleConnected?: boolean;
+  googleAccountId?: string;
+  googleLocationId?: string;
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
+  googleTokenExpiry?: string;
+  googleLastSyncedAt?: string;
+  googleLastError?: string | null;
+  googleSyncStatus?: "idle" | "syncing" | "failed" | "success";
+}
+
+export interface GoogleReview {
+  id: string;
+  businessId: string;
+  businessSlug: string;
+  googleReviewId: string;
+  stars: number;
+  text: string;
+  authorName: string;
+  authorPhotoUrl?: string;
+  postedAt: string; // ISO 8601 string
+  createdAt?: string;
 }
 
 export type ReviewStep = 1 | 2 | 3 | 4;

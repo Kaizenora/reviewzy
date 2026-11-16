@@ -25,6 +25,10 @@ export const DEFAULT_SHOPS: Shop[] = [
       "Too noisy",
       "Overpriced",
     ],
+    reportToken: "tok_cafemokka_sec89a",
+    timezone: "Asia/Kolkata",
+    googleConnected: false,
+    googleSyncStatus: "idle",
   },
   {
     id: "shop_urban_salon",
@@ -49,6 +53,10 @@ export const DEFAULT_SHOPS: Shop[] = [
       "Parking difficulty",
       "Slightly expensive",
     ],
+    reportToken: "tok_urbansalon_sec32d",
+    timezone: "Asia/Kolkata",
+    googleConnected: false,
+    googleSyncStatus: "idle",
   },
   {
     id: "shop_apex_dental",
@@ -71,6 +79,10 @@ export const DEFAULT_SHOPS: Shop[] = [
       "Crowded waiting room",
       "Appointment delay",
     ],
+    reportToken: "tok_apexdental_sec45e",
+    timezone: "Asia/Kolkata",
+    googleConnected: false,
+    googleSyncStatus: "idle",
   },
   {
     id: "shop_sharma_sweets",
@@ -93,6 +105,10 @@ export const DEFAULT_SHOPS: Shop[] = [
       "Heavy evening rush",
       "Limited seating space",
     ],
+    reportToken: "tok_sharmasweets_sec67f",
+    timezone: "Asia/Kolkata",
+    googleConnected: false,
+    googleSyncStatus: "idle",
   },
 ];
 

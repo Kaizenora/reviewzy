@@ -6,6 +6,7 @@ import {
   getAllShops,
   saveShop,
   deleteShop,
+  generateReportToken,
 } from "@/lib/supabase";
 import { DEFAULT_SHOPS } from "@/lib/default-shops";
 import Link from "next/link";
@@ -22,6 +23,7 @@ import {
   Trash2,
   Upload,
   X,
+  BarChart3,
 } from "lucide-react";
 
 export default function PrivateAdminPage() {
@@ -30,6 +32,7 @@ export default function PrivateAdminPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShopSlug, setEditingShopSlug] = useState<string | null>(null);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [copiedReportSlug, setCopiedReportSlug] = useState<string | null>(null);
   const [copiedSchema, setCopiedSchema] = useState(false);
 
   // Shop form state
@@ -130,10 +133,11 @@ export default function PrivateAdminPage() {
     if (!name || !slug) return;
 
     const targetSlug = editingShopSlug || slug.trim();
+    const existingShop = shops.find((s) => s.slug === targetSlug);
 
     const shopPayload: Shop = {
       id: editingShopSlug
-        ? shops.find((s) => s.slug === editingShopSlug)?.id || `shop_${Date.now()}`
+        ? existingShop?.id || `shop_${Date.now()}`
         : `shop_${Date.now()}`,
       slug: targetSlug,
       name: name.trim(),
@@ -152,7 +156,13 @@ export default function PrivateAdminPage() {
         .filter(Boolean),
       couldBeBetterTags: [],
       category,
-      createdAt: new Date().toISOString(),
+      createdAt: existingShop?.createdAt || new Date().toISOString(),
+      reportToken: existingShop?.reportToken || generateReportToken(),
+      timezone: existingShop?.timezone || "Asia/Kolkata",
+      googleConnected: existingShop?.googleConnected || false,
+      googleSyncStatus: existingShop?.googleSyncStatus || "idle",
+      googleLastSyncedAt: existingShop?.googleLastSyncedAt,
+      googleLastError: existingShop?.googleLastError,
     };
 
     await saveShop(shopPayload);
@@ -172,6 +182,14 @@ export default function PrivateAdminPage() {
     navigator.clipboard.writeText(url);
     setCopiedSlug(shopSlug);
     setTimeout(() => setCopiedSlug(null), 2000);
+  };
+
+  const copyReportUrl = (shopSlug: string, reportToken?: string) => {
+    const token = reportToken || "";
+    const url = `${window.location.origin}/report/${shopSlug}?token=${encodeURIComponent(token)}`;
+    navigator.clipboard.writeText(url);
+    setCopiedReportSlug(shopSlug);
+    setTimeout(() => setCopiedReportSlug(null), 2000);
   };
 
   const handleCopySchema = () => {
@@ -486,18 +504,18 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                 {/* GOOGLE MAPS DESTINATION */}
                 <div>
                   <label className="text-xs font-bold text-zinc-300 block mb-1">
-                    Google Maps Destination URL *
+                    Google Review Destination URL (Direct Write-Review Link or Maps URL) *
                   </label>
                   <input
                     type="url"
                     required
-                    placeholder="https://www.google.com/maps/search/?api=1&query=..."
+                    placeholder="https://search.google.com/local/writereview?placeid=... or Maps URL"
                     value={googleReviewUrl}
                     onChange={(e) => setGoogleReviewUrl(e.target.value)}
                     className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-[#2E2E40] bg-[#111118] text-white outline-none focus:border-[#E36427]"
                   />
-                  <p className="text-[10px] text-zinc-500 mt-1">
-                    Opens directly in the Google Maps app where users are already signed in.
+                  <p className="text-[10px] text-zinc-400 mt-1">
+                    ✨ Use <code className="text-[#E36427] bg-[#1C1C28] px-1 py-0.5 rounded font-mono text-[9px]">https://search.google.com/local/writereview?placeid=...</code> to open the 5-star rating popup directly on customers&apos; phones!
                   </p>
                 </div>
 
@@ -514,6 +532,24 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                   />
                   <p className="text-[10px] text-zinc-500 mt-1">
                     Customers can tap these chips on their phone to shape their authentic 5-star Google review.
+                  </p>
+                </div>
+
+                {/* HOSTED REPORT URL INFO */}
+                <div className="bg-[#181824] p-3.5 rounded-2xl border border-[#28283A]">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                      <BarChart3 className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Private Google Review Report</span>
+                    </label>
+                    <span className="text-[10px] text-zinc-500 font-medium">Scoped Access Token</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    A private report URL is hosted at{" "}
+                    <code className="text-amber-400 bg-[#111118] px-1.5 py-0.5 rounded text-[10px]">
+                      /report/{slug || "slug"}?token=&lt;secret_token&gt;
+                    </code>
+                    . Scoped access ensures restaurants can only view their own Google reviews.
                   </p>
                 </div>
 
@@ -598,7 +634,17 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                        {s.googleConnected ? (
+                          <span className="text-[10px] bg-emerald-950/60 border border-emerald-500/30 font-semibold text-emerald-400 px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                            Google Connected
+                          </span>
+                        ) : (
+                          <span className="text-[10px] bg-[#1A1A24] border border-[#2D2D3E] font-medium text-zinc-500 px-2 py-0.5 rounded-full">
+                            Google Offline
+                          </span>
+                        )}
                         <span className="text-[10px] bg-[#1F1F2C] border border-[#2D2D3E] font-semibold text-zinc-300 px-2.5 py-0.5 rounded-full">
                           {s.category || "Shop"}
                         </span>
@@ -637,25 +683,56 @@ CREATE POLICY "Public can view review logs" ON public.review_logs FOR SELECT USI
 
                   {/* BOTTOM ACTION BAR */}
                   <div className="pt-3 border-t border-[#222230] flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
-                    <button
-                      onClick={() => copyShopUrl(s.slug)}
-                      className="text-zinc-400 hover:text-white flex items-center gap-1"
-                      title="Copy customer link"
-                    >
-                      {copiedSlug === s.slug ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-emerald-400 font-bold">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          <span>Copy Link</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => copyShopUrl(s.slug)}
+                        className="text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+                        title="Copy customer review link"
+                      >
+                        {copiedSlug === s.slug ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-emerald-400 font-bold">Copied QR Link!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Copy QR Link</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => copyReportUrl(s.slug, s.reportToken)}
+                        className="text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+                        title="Copy private report URL with secret token"
+                      >
+                        {copiedReportSlug === s.slug ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span className="text-emerald-400 font-bold">Copied Report Link!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Copy Report URL</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
 
                     <div className="flex items-center gap-2">
+                      {/* VIEW REPORT BUTTON */}
+                      <Link
+                        href={`/report/${s.slug}?token=${encodeURIComponent(s.reportToken || "")}`}
+                        target="_blank"
+                        className="bg-[#1C1C28] hover:bg-[#252538] text-amber-300 border border-amber-800/50 px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors font-bold text-xs shadow-sm"
+                        title="Open Private Google Review Report"
+                      >
+                        <BarChart3 className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Report</span>
+                      </Link>
+
                       {/* EDIT DETAILS BUTTON */}
                       <button
                         onClick={() => handleOpenEditModal(s)}

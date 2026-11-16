@@ -201,14 +201,25 @@ export default function CustomerReviewFlow({ shop, isDemo = false }: Props) {
         actionStatus: "copied_and_opened_google",
       });
 
-      // Deep-link to Google Maps
-      const targetUrl =
-        shop.googleReviewUrl &&
-        !shop.googleReviewUrl.includes("search.google.com/local/writereview")
-          ? shop.googleReviewUrl
-          : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              `${shop.name} ${shop.location}`
-            )}`;
+      // Deep-link directly to Google's official Write-a-Review dialog
+      let targetUrl = shop.googleReviewUrl?.trim();
+      if (
+        !targetUrl ||
+        (!targetUrl.includes("search.google.com/local/writereview") &&
+         !targetUrl.includes("g.page/r/"))
+      ) {
+        // If raw Place ID or a link containing Place ID is provided
+        const placeIdMatch = targetUrl?.match(/(?:placeid=|place_id=|!1s|^)(ChIJ[a-zA-Z0-9_-]{20,})/);
+        if (placeIdMatch && placeIdMatch[1]) {
+          targetUrl = `https://search.google.com/local/writereview?placeid=${placeIdMatch[1]}`;
+        } else if (shop.slug === "png-jewellers") {
+          targetUrl = "https://search.google.com/local/writereview?placeid=ChIJ9fffw3yw3DsR1p_SKLjr9tM";
+        } else if (!targetUrl) {
+          targetUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            `${shop.name} ${shop.location}`
+          )}`;
+        }
+      }
 
       setTimeout(() => {
         window.open(targetUrl, "_blank", "noopener,noreferrer");
